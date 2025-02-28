@@ -1,0 +1,36 @@
+app.MapGet("/company", async (AppDbContext db) =>
+    await db.Company.ToListAsync());
+
+app.MapGet("/company/{companyName}", async (AppDbContext db, string companyName) =>
+    await db.Company.FindAsync(companyName) is Company company ? Results.Ok(company) : Results.NotFound());
+
+app.MapPost("/company", async (AppDbContext db, Company company) =>
+{
+    db.Company.Add(company);
+    await db.SaveChangesAsync();
+    return Results.Created($"/company/{company.Company_Name}", company);
+});
+
+app.MapPut("/company/{companyName}", async (AppDbContext db, string companyName, Company updatedCompany) =>
+{
+    var existingCompany = await db.Company.FindAsync(companyName);
+    if (existingCompany == null) return Results.NotFound();
+
+    existingCompany.Email = updatedCompany.Email;
+    existingCompany.Password = updatedCompany.Password;
+    existingCompany.Nr_of_accounts = updatedCompany.Nr_of_accounts;
+    existingCompany.SuperUserEmail = updatedCompany.SuperUserEmail;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(existingCompany);
+});
+
+app.MapDelete("/company/{companyName}", async (AppDbContext db, string companyName) =>
+{
+    var companyToRemove = await db.Company.FindAsync(companyName);
+    if (companyToRemove == null) return Results.NotFound();
+
+    db.Company.Remove(companyToRemove);
+    await db.SaveChangesAsync();
+    return Results.Ok(companyToRemove);
+});

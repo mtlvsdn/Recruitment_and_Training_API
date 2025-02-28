@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClient.LoginPage"
+             Title="LoginPage">
+    <Grid BackgroundColor="White">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="220" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+
+        <Path Data="m-0.48,0.28199l799.99998,0l0,242.00001l-799.99998,0l0,-242.00001z" Stroke="#000" Fill="#2c72ea"/>
+
+        <StackLayout>
+            <Frame BackgroundColor="SkyBlue" HeightRequest="60" WidthRequest="60" CornerRadius="30" Padding="0" Margin="0,100,0,0" HorizontalOptions="Center">
+                <Image Source="profile_picture.png" Aspect="AspectFill" Margin="0"/>
+            </Frame>
+        </StackLayout>
+
+        <Grid RowSpacing="5" Grid.Row="1" Margin="20,20,20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="1" Text="Welcome!" HorizontalOptions="Center" FontSize="Title" FontAttributes="Bold" Padding="0" Margin="0"/>
+            <Label Grid.Row="2" Text="Log in" HorizontalOptions="Center" FontSize="Subtitle"/>
+
+            <StackLayout Grid.Row="3" Orientation="Vertical" HorizontalOptions="Center">
+                <Frame BackgroundColor="Transparent" BorderColor="SkyBlue" Padding="0" HorizontalOptions="Fill" CornerRadius="30">
+                    <StackLayout Orientation="Horizontal">
+                        <Frame BackgroundColor="SkyBlue" HeightRequest="40" WidthRequest="40" CornerRadius="30" Padding="0" Margin="5">
+                            <Image Source="profile_picture.png" Aspect="AspectFill" Margin="0"/>
+                        </Frame>
+                        <Entry Text="{Binding Email}" Placeholder="Email" TextColor="Black" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Fill" Margin="0,0,20,0"/>
+                    </StackLayout>
+                </Frame>
+                <Frame BackgroundColor="Transparent" BorderColor="SkyBlue" Margin="0,15,0,0" Padding="0" HorizontalOptions="Fill" CornerRadius="30">
+                    <StackLayout Orientation="Horizontal">
+                        <Frame BackgroundColor="SkyBlue" HeightRequest="40" WidthRequest="40" CornerRadius="30" Padding="0" Margin="5">
+                            <Image Source="lock_icon_2.png" Aspect="AspectFill" Margin="0"/>
+                        </Frame>
+                        <Entry Text="{Binding Password}" Placeholder="Password" TextColor="Black" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Fill" Margin="0,0,20,0"/>
+                    </StackLayout>
+                </Frame>
+
+                <StackLayout Orientation="Horizontal" Margin="0,10,0,0" Padding="0">
+                    <CheckBox IsChecked="False"/>
+                    <Label Text="Remember Me" TextColor="DarkGrey" FontSize="Small" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
+                </StackLayout>
+
+                <Button Text="LOG IN" BackgroundColor="#2c72ea" TextColor="White" FontAttributes="Bold" CornerRadius="30" WidthRequest="200" Margin="0,15,0,0" Command="{Binding LogInCommand}"/>
+            </StackLayout>
+        </Grid>
+    </Grid>
+</ContentPage> 
