@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClient.NewCompanyPage"
+             Title="Add New Company">
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <Label Text="Add New Company" 
+               FontAttributes="Bold" 
+               FontSize="Large"
+               HorizontalOptions="Center" />
+
+        <Entry x:Name="CompanyNameEntry" 
+               Placeholder="Company Name" />
+
+        <Entry x:Name="EmailEntry" 
+               Placeholder="Email" 
+               Keyboard="Email" />
+
+        <Entry x:Name="PasswordEntry" 
+               Placeholder="Password" 
+               IsPassword="True" />
+
+        <Entry x:Name="LicensesEntry" 
+               Placeholder="No. of Licenses" 
+               Keyboard="Numeric" />
+
+        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+            <Button Text="Add" 
+                    BackgroundColor="LightGreen" 
+                    Clicked="OnAddClicked" />
+            <Button Text="Cancel" 
+                    BackgroundColor="Gray" 
+                    Clicked="OnCancelClicked" />
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentPage>

@@ -2,7 +2,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiClient.LoginPage"
+             xmlns:viewmodels="clr-namespace:MauiClient.ViewModels"
              Title="LoginPage">
+
+    <!-- <ContentPage.BindingContext>
+        <viewmodels:LoginPageViewModel />
+    </ContentPage.BindingContext> -->
+
     <Grid BackgroundColor="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="220" />
@@ -37,7 +43,7 @@
                         <Frame BackgroundColor="SkyBlue" HeightRequest="40" WidthRequest="40" CornerRadius="30" Padding="0" Margin="5">
                             <Image Source="profile_picture.png" Aspect="AspectFill" Margin="0"/>
                         </Frame>
-                        <Entry Text="{Binding Email}" Placeholder="Email" TextColor="Black" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Fill" Margin="0,0,20,0"/>
+                        <Entry Text="{Binding SuperUseremail}" Placeholder="Email" TextColor="Black" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Fill" Margin="0,0,20,0"/>
                     </StackLayout>
                 </Frame>
                 <Frame BackgroundColor="Transparent" BorderColor="SkyBlue" Margin="0,15,0,0" Padding="0" HorizontalOptions="Fill" CornerRadius="30">
@@ -54,8 +60,12 @@
                     <Label Text="Remember Me" TextColor="DarkGrey" FontSize="Small" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
                 </StackLayout>
 
-                <Button Text="LOG IN" BackgroundColor="#2c72ea" TextColor="White" FontAttributes="Bold" CornerRadius="30" WidthRequest="200" Margin="0,15,0,0" Command="{Binding LogInCommand}"/>
+                <Button Text="LOG IN" BackgroundColor="#2c72ea" TextColor="White" 
+                    FontAttributes="Bold" CornerRadius="30" WidthRequest="200" 
+                    Margin="0,15,0,0" Command="{Binding LoginCommand}"/>
             </StackLayout>
+            <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" 
+                   HorizontalOptions="Center" VerticalOptions="Center" />
         </Grid>
     </Grid>
-</ContentPage> 
+</ContentPage>

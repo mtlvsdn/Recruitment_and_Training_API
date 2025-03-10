@@ -4,12 +4,42 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiClient"
-    Shell.FlyoutBehavior="Disabled"
-    Title="MauiClient">
+    Shell.FlyoutBehavior="Flyout">
+
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="LightGray" Padding="20">
+            <Label Text="Welcome!"
+                   FontSize="24"
+                   TextColor="Black"
+                   HorizontalOptions="Start"
+                   VerticalOptions="Center"/>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate local:LoginPage}"
+        Route="LoginPage" />
 
     <ShellContent
         Title="Home"
-        ContentTemplate="{DataTemplate local:LoginPage}"
-        Route="MainPage" />
+        ContentTemplate="{DataTemplate local:HomePage}"
+        Route="HomePage" />
+
+    <Shell.FlyoutContent>
+        <VerticalStackLayout Padding="20">
+
+            <Button Text="Add Company"
+                    Clicked="OnAddCompanyClicked"
+                    BackgroundColor="DodgerBlue"
+                    TextColor="White"/>
+
+            <Button Text="Logout"
+                    Clicked="OnLogoutButtonClicked"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+    </Shell.FlyoutContent>
 
 </Shell>

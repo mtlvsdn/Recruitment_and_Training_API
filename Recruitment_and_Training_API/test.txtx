@@ -1,36 +1,45 @@
-app.MapGet("/company", async (AppDbContext db) =>
-    await db.Company.ToListAsync());
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MauiClient.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiClient"
+    Shell.FlyoutBehavior="Flyout">
 
-app.MapGet("/company/{companyName}", async (AppDbContext db, string companyName) =>
-    await db.Company.FindAsync(companyName) is Company company ? Results.Ok(company) : Results.NotFound());
+    <!-- Flyout Header (Label) -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="LightGray" Padding="20">
+            <Label Text="Welcome!"
+                   FontSize="24"
+                   TextColor="Black"
+                   HorizontalOptions="Start"
+                   VerticalOptions="Center"/>
+        </Grid>
+    </Shell.FlyoutHeader>
 
-app.MapPost("/company", async (AppDbContext db, Company company) =>
-{
-    db.Company.Add(company);
-    await db.SaveChangesAsync();
-    return Results.Created($"/company/{company.Company_Name}", company);
-});
+    <!-- Main Home Page -->
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:HomePage}"
+        Route="HomePage" />
 
-app.MapPut("/company/{companyName}", async (AppDbContext db, string companyName, Company updatedCompany) =>
-{
-    var existingCompany = await db.Company.FindAsync(companyName);
-    if (existingCompany == null) return Results.NotFound();
+    <!-- Flyout Menu Buttons -->
+    <Shell.FlyoutContent>
+        <VerticalStackLayout Padding="20">
+            
+            <!-- Add Company Button -->
+            <Button Text="Add Company"
+                    Clicked="OnAddCompanyClicked"
+                    BackgroundColor="DodgerBlue"
+                    TextColor="White"/>
 
-    existingCompany.Email = updatedCompany.Email;
-    existingCompany.Password = updatedCompany.Password;
-    existingCompany.Nr_of_accounts = updatedCompany.Nr_of_accounts;
-    existingCompany.SuperUserEmail = updatedCompany.SuperUserEmail;
-
-    await db.SaveChangesAsync();
-    return Results.Ok(existingCompany);
-});
-
-app.MapDelete("/company/{companyName}", async (AppDbContext db, string companyName) =>
-{
-    var companyToRemove = await db.Company.FindAsync(companyName);
-    if (companyToRemove == null) return Results.NotFound();
-
-    db.Company.Remove(companyToRemove);
-    await db.SaveChangesAsync();
-    return Results.Ok(companyToRemove);
-});
+            <!-- Logout Button -->
+            <Button Text="Logout"
+                    Clicked="OnLogoutButtonClicked"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    Margin="0,10,0,0"/>
+            
+        </VerticalStackLayout>
+    </Shell.FlyoutContent>
+</Shell>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -5,14 +6,12 @@ using System.ComponentModel.DataAnnotations;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //Configure Database Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer("Server=localhost\\MSSQLSERVER01;Database=master;Trusted_Connection=True;TrustServerCertificate=True;"));
-
 
 builder.Services.AddCors(options =>
 {
@@ -37,48 +36,41 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//var superUsers = new List<SuperUser> {
-//    new SuperUser {Email = "matei@popescu.net", Password = "welcome1"},
-//    new SuperUser {Email = "diana@popescu.net", Password = "welcome2"},
-//    new SuperUser {Email = "pitagora@cat.net", Password = "welcome3"}
-//};
-
 //Database Context
 var dbContext = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
 dbContext.Database.EnsureCreated(); //Create Database if not exists
 
-
 ////////////////////////////////////////////////////////////////////
 ///////////////////////////////SUPERUSER////////////////////////////
 ////////////////////////////////////////////////////////////////////
-app.MapGet("/superuser", async(AppDbContext db) =>
+app.MapGet("/superuser", async (AppDbContext db) =>
     await db.SuperUser.ToListAsync());
 
-app.MapGet("/superuser/{email}", async(AppDbContext db, string email) =>
-    await db.SuperUser.FindAsync(email) is SuperUser user ? Results.Ok(user) : Results.NotFound());
+app.MapGet("/superuser/{SuperUseremail}", async (AppDbContext db, string SuperUseremail) =>
+    await db.SuperUser.FindAsync(SuperUseremail) is SuperUser user ? Results.Ok(user) : Results.NotFound());
 
-app.MapPost("/superuser", async(AppDbContext db, SuperUser superUser) =>
+app.MapPost("/superuser", async (AppDbContext db, SuperUser superUser) =>
 {
     db.SuperUser.Add(superUser);
     await db.SaveChangesAsync();
-    return Results.Created($"/superuser/{superUser.Email}", superUser);
+    return Results.Created($"/superuser/{superUser.SuperUseremail}", superUser);
 });
 
-app.MapPut("/superuser/{email}", async(AppDbContext db, string email, SuperUser updatedSuperUser) =>
+app.MapPut("/superuser/{SuperUseremail}", async (AppDbContext db, string SuperUseremail, SuperUser updatedSuperUser) =>
 {
-    var existingUser = await db.SuperUser.FindAsync(email);
-    if ( existingUser == null) 
+    var existingUser = await db.SuperUser.FindAsync(SuperUseremail);
+    if (existingUser == null)
     {
         return Results.NotFound();
     }
-    existingUser.Password= updatedSuperUser.Password;
+    existingUser.Password = updatedSuperUser.Password;
     await db.SaveChangesAsync();
     return Results.Ok(existingUser);
 });
 
-app.MapDelete("/superuser/{email}", async(AppDbContext db, string email) =>
+app.MapDelete("/superuser/{SuperUseremail}", async (AppDbContext db, string SuperUseremail) =>
 {
-    var userToRemove = await db.SuperUser.FindAsync(email);
+    var userToRemove = await db.SuperUser.FindAsync(SuperUseremail);
     if (userToRemove == null)
     {
         return Results.NotFound();
@@ -97,7 +89,7 @@ app.MapGet("/user", async (AppDbContext db) =>
 app.MapGet("/user/{id}", async (AppDbContext db, int id) =>
     await db.User.FindAsync(id) is User user ? Results.Ok(user) : Results.NotFound());
 
-app.MapPost("/user", async (AppDbContext db, User user) => { 
+app.MapPost("/user", async (AppDbContext db, User user) => {
     db.User.Add(user);
     await db.SaveChangesAsync();
     return Results.Created($"/user/{user.Id}", user);
@@ -131,10 +123,11 @@ app.MapDelete("/user/{id}", async (AppDbContext db, int id) =>
     await db.SaveChangesAsync();
     return Results.Ok(userToRemove);
 });
+
 ////////////////////////////////////////////////////////////////////
 //////////////////////////////COMPANY///////////////////////////////
 ////////////////////////////////////////////////////////////////////
-app.MapGet("/cpmpany", async (AppDbContext db) =>
+app.MapGet("/company", async (AppDbContext db) =>
     await db.Company.ToListAsync());
 
 app.MapGet("/company/{company_name}", async (AppDbContext db, string company_name) =>
@@ -157,7 +150,7 @@ app.MapPut("/company/{company_name}", async (AppDbContext db, string company_nam
     existingCompany.Email = updatedCompany.Email;
     existingCompany.Password = updatedCompany.Password;
     existingCompany.Nr_of_accounts = updatedCompany.Nr_of_accounts;
-    existingCompany.SuperUserEmail = updatedCompany.SuperUserEmail;
+    existingCompany.SuperUseremail = updatedCompany.SuperUseremail;
     await db.SaveChangesAsync();
     return Results.Ok(existingCompany);
 });
@@ -172,6 +165,42 @@ app.MapDelete("/company/{companyName}", async (AppDbContext db, string companyNa
     return Results.Ok(companyToRemove);
 });
 
+////////////////////////////////////////////////////////////////////
+/////////////////////////AUTHENTICATION/////////////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapPost("/authenticate", async (AppDbContext db, LoginRequest loginRequest) =>
+{
+    var user = await db.SuperUser.FindAsync(loginRequest.SuperUseremail);
+
+    if (user == null)
+        return Results.NotFound("User not found");
+
+    if (user.Password != loginRequest.Password)
+        return Results.Unauthorized();
+
+    var token = Guid.NewGuid().ToString();
+
+    return Results.Ok(new
+    {
+        Token = token,
+        Email = user.SuperUseremail
+    });
+});
+
+////////////////////////////////////////////////////////////////////
+///////////////////////////HOMEPAGE CARDS///////////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapGet("/company/count", async (AppDbContext db) =>
+{
+    var companyCount = await db.Company.CountAsync();
+    return Results.Ok(companyCount);
+});
+
+app.MapGet("/user/count", async (AppDbContext db) =>
+{
+    var userCount = await db.User.CountAsync();
+    return Results.Ok(userCount);
+});
 
 app.Run("http://0.0.0.0:7287");
 
@@ -185,7 +214,7 @@ class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<SuperUser>()
-            .HasKey(s => s.Email);
+            .HasKey(s => s.SuperUseremail);
         modelBuilder.Entity<SuperUser>()
             .ToTable("SuperUser");
 
@@ -201,11 +230,10 @@ class AppDbContext : DbContext
     }
 }
 
-
 class SuperUser
 {
     [Key]
-    public string Email { get; set; }
+    public string SuperUseremail { get; set; }
     public string Password { get; set; }
 }
 
@@ -226,5 +254,11 @@ class Company
     public string Email { get; set; }
     public string Password { get; set; }
     public int Nr_of_accounts { get; set; }
-    public string SuperUserEmail { get; set; }
+    public string SuperUseremail { get; set; }
+}
+
+public class LoginRequest
+{
+    public string SuperUseremail { get; set; }
+    public string Password { get; set; }
 }

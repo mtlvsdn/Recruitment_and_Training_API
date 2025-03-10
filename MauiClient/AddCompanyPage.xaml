@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClient.AddCompanyPage"
+             Title="Add Company">
+    <VerticalStackLayout Padding="10">
+        <!-- Button to add a new company -->
+        <Button Text="Add New Company" 
+                Command="{Binding AddNewCompany}" 
+                BackgroundColor="LightGreen" 
+                TextColor="Black" 
+                Margin="0,0,0,10"/>
+
+        <!-- Header Grid -->
+        <Grid Padding="15" BackgroundColor="LightGray">
+            <Label Text="Company Name" FontAttributes="Bold" />
+            <Label Text="Licenses" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Actions" FontAttributes="Bold" HorizontalOptions="End"/>
+        </Grid>
+
+        <!-- CollectionView of companies -->
+        <CollectionView ItemsSource="{Binding Companies}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="7" Margin="0,2">
+                        <!-- Bind to Company_Name and LicenseCount -->
+                        <Label Text="{Binding Company_Name}" VerticalOptions="Center"/>
+                        <Label Text="{Binding LicenseCount}" VerticalOptions="Center" HorizontalOptions="Center"/>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                            <!-- Use RelativeSource binding to access the view model commands -->
+                            <Button Text="Edit" 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}" 
+                                    CommandParameter="{Binding}" 
+                                    BackgroundColor="LightBlue" 
+                                    WidthRequest="60"/>
+                            <Button Text="X" 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}" 
+                                    CommandParameter="{Binding}" 
+                                    BackgroundColor="Red" 
+                                    TextColor="White" 
+                                    WidthRequest="40"/>
+                        </HorizontalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

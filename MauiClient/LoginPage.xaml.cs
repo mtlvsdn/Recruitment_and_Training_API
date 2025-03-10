@@ -1,9 +1,13 @@
-namespace MauiClient;
+using MauiClient.ViewModels;
 
-public partial class LoginPage : ContentPage
+namespace MauiClient
 {
-	public LoginPage()
-	{
-		InitializeComponent();
-	}
+    public partial class LoginPage : ContentPage
+    {
+        public LoginPage(LoginPageViewModel viewModel)
+        {
+            InitializeComponent();
+            BindingContext = viewModel;
+        }
+    }
 }
