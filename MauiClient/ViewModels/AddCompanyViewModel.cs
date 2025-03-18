@@ -12,15 +12,13 @@ namespace MauiClient
     public class AddCompanyViewModel : BaseViewModel
     {
         private readonly HttpClient _httpClient;
-#if __ANDROID__
+#if ANDROID
         private const string ApiBaseUrl = "http://10.0.2.2:7287";
 #else
         private const string ApiBaseUrl = "http://localhost:7287";
 #endif
-
         public ObservableCollection<CompanyModel> Companies { get; set; } = new ObservableCollection<CompanyModel>();
 
-        // These commands are defined in the view model.
         public ICommand AddNewCompany { get; }
         public ICommand EditCommand { get; }
         public ICommand DeleteCommand { get; }
@@ -31,7 +29,16 @@ namespace MauiClient
             LoadCompanies();
 
             AddNewCompany = new Command(async () => await Application.Current.MainPage.Navigation.PushAsync(new NewCompanyPage()));
-            EditCommand = new Command<CompanyModel>(async (company) => await EditCompany(company));
+
+            // Pass the selected company to EditCompanyPage
+            EditCommand = new Command<CompanyModel>(async (company) =>
+            {
+                if (company != null)
+                {
+                    await Application.Current.MainPage.Navigation.PushAsync(new EditCompanyPage(company));
+                }
+            });
+
             DeleteCommand = new Command<CompanyModel>(async (company) => await DeleteCompany(company));
         }
 
@@ -55,33 +62,22 @@ namespace MauiClient
             }
         }
 
-        private async Task AddCompany()
-        {
-            // Use the API property names: Company_Name and LicenseCount.
-            var newCompany = new CompanyModel { Company_Name = "New Company", LicenseCount = 1 };
-            var response = await _httpClient.PostAsJsonAsync($"{ApiBaseUrl}/company", newCompany);
-
-            if (response.IsSuccessStatusCode)
-            {
-                Companies.Add(newCompany);
-            }
-        }
-
-        private async Task EditCompany(CompanyModel company)
-        {
-            var response = await _httpClient.PutAsJsonAsync($"{ApiBaseUrl}/company/{company.Company_Name}", company);
-            if (response.IsSuccessStatusCode)
-            {
-                LoadCompanies();
-            }
-        }
-
         private async Task DeleteCompany(CompanyModel company)
         {
+            bool confirm = await Application.Current.MainPage.DisplayAlert("Confirm",
+                $"Are you sure you want to delete {company.Company_Name}?", "Yes", "No");
+            if (!confirm) return;
+
             var response = await _httpClient.DeleteAsync($"{ApiBaseUrl}/company/{company.Company_Name}");
             if (response.IsSuccessStatusCode)
             {
                 Companies.Remove(company);
+                await Application.Current.MainPage.DisplayAlert("Success", "Company deleted successfully", "OK");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete company: {errorContent}", "OK");
             }
         }
     }

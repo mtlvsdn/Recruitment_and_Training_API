@@ -160,11 +160,16 @@ app.MapDelete("/company/{companyName}", async (AppDbContext db, string companyNa
     var companyToRemove = await db.Company.FindAsync(companyName);
     if (companyToRemove == null) return Results.NotFound();
 
+    var relatedUsers = await db.User.Where(u => u.Company_Name == companyName).ToListAsync();
+    if (relatedUsers.Any())
+    {
+        db.User.RemoveRange(relatedUsers);
+    }
+
     db.Company.Remove(companyToRemove);
     await db.SaveChangesAsync();
     return Results.Ok(companyToRemove);
 });
-
 ////////////////////////////////////////////////////////////////////
 /////////////////////////AUTHENTICATION/////////////////////////////
 ////////////////////////////////////////////////////////////////////

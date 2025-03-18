@@ -55,11 +55,6 @@
                     </StackLayout>
                 </Frame>
 
-                <StackLayout Orientation="Horizontal" Margin="0,10,0,0" Padding="0">
-                    <CheckBox IsChecked="False"/>
-                    <Label Text="Remember Me" TextColor="DarkGrey" FontSize="Small" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
-                </StackLayout>
-
                 <Button Text="LOG IN" BackgroundColor="#2c72ea" TextColor="White" 
                     FontAttributes="Bold" CornerRadius="30" WidthRequest="200" 
                     Margin="0,15,0,0" Command="{Binding LoginCommand}"/>

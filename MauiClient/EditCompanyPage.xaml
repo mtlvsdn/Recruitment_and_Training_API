@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClient.EditCompanyPage"
+             Title="Edit Company">
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <Label Text="Company Details" 
+               FontAttributes="Bold" 
+               FontSize="Large"
+               HorizontalOptions="Center" />
+
+        <!-- Company Name Field with Label -->
+        <StackLayout Spacing="5">
+            <Label Text="Company Name" FontSize="Small" TextColor="Gray"/>
+            <Entry x:Name="CompanyNameEntry" 
+                   Placeholder="Company Name" />
+        </StackLayout>
+
+        <!-- Email Field with Label -->
+        <StackLayout Spacing="5">
+            <Label Text="Email" FontSize="Small" TextColor="Gray"/>
+            <Entry x:Name="EmailEntry" 
+                   Placeholder="Email" 
+                   Keyboard="Email" />
+        </StackLayout>
+
+        <!-- Password Field with Label -->
+        <StackLayout Spacing="5">
+            <Label Text="Password" FontSize="Small" TextColor="Gray"/>
+            <Entry x:Name="PasswordEntry" 
+                   Placeholder="Password" 
+                   IsPassword="True" />
+        </StackLayout>
+
+        <!-- Licenses Field with Label -->
+        <StackLayout Spacing="5">
+            <Label Text="Number of Licenses" FontSize="Small" TextColor="Gray"/>
+            <Entry x:Name="LicensesEntry" 
+                   Placeholder="No. of Licenses" 
+                   Keyboard="Numeric" />
+        </StackLayout>
+
+        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
+            <Button x:Name="AddButton"
+                    Text="Add" 
+                    BackgroundColor="LightGreen" 
+                    Clicked="OnAddClicked" />
+            <Button Text="Cancel" 
+                    BackgroundColor="Gray" 
+                    Clicked="OnCancelClicked" />
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentPage>
