@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MauiUserApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiUserApp"
+    xmlns:views="clr-namespace:MauiUserApp.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Title="MauiUserApp">
+
+    <!-- Shell property elements need to be at the beginning -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="LightGray" Padding="20">
+            <Label Text="Welcome!"
+                  FontSize="24"
+                  TextColor="Black"
+                  HorizontalOptions="Start"
+                  VerticalOptions="Center"/>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <Shell.FlyoutContent>
+        <VerticalStackLayout Padding="20">
+            <Button Text="Add Company"
+                   Clicked="OnAddCompanyClicked"
+                   BackgroundColor="DodgerBlue"
+                   TextColor="White"/>
+            <Button Text="Logout"
+                   Clicked="OnLogoutButtonClicked"
+                   BackgroundColor="Red"
+                   TextColor="White"
+                   Margin="0,10,0,0"/>
+        </VerticalStackLayout>
+    </Shell.FlyoutContent>
+
+    <!-- Now place all ShellContent elements after the property elements -->
+    <ShellContent 
+        Route="StartUpPage" 
+        ContentTemplate="{DataTemplate views:StartUpPage}" />
+
+    <ShellContent
+       Title="StartUpPage"
+       ContentTemplate="{DataTemplate local:StartUpPage}"
+       Route="StartUpPage" />
+
+    <ShellContent
+       Title="CompPageLogin"
+       ContentTemplate="{DataTemplate local:CompPageLogin}"
+       Route="CompPageLogin" />
+
+    <ShellContent
+       Title="UserPageLogin"
+       ContentTemplate="{DataTemplate local:UserPageLogin}"
+       Route="UserPageLogin" />
+
+    <ShellContent
+       Title="Home"
+       ContentTemplate="{DataTemplate local:HomePage}"
+       Route="HomePage" />
+</Shell>

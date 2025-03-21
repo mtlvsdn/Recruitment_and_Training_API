@@ -130,6 +130,11 @@ app.MapDelete("/user/{id}", async (AppDbContext db, int id) =>
 app.MapGet("/company", async (AppDbContext db) =>
     await db.Company.ToListAsync());
 
+app.MapGet("/company/byemail/{email}", async (AppDbContext db, string email) =>
+    await db.Company.FirstOrDefaultAsync(c => c.Email == email) is Company company
+        ? Results.Ok(company)
+        : Results.NotFound());
+
 app.MapGet("/company/{company_name}", async (AppDbContext db, string company_name) =>
     await db.Company.FindAsync(company_name) is Company company ? Results.Ok(company) : Results.NotFound());
 
@@ -171,7 +176,7 @@ app.MapDelete("/company/{companyName}", async (AppDbContext db, string companyNa
     return Results.Ok(companyToRemove);
 });
 ////////////////////////////////////////////////////////////////////
-/////////////////////////AUTHENTICATION/////////////////////////////
+/////////////////////////AUTHENTICATION DEVS////////////////////////
 ////////////////////////////////////////////////////////////////////
 app.MapPost("/authenticate", async (AppDbContext db, LoginRequest loginRequest) =>
 {
@@ -189,6 +194,50 @@ app.MapPost("/authenticate", async (AppDbContext db, LoginRequest loginRequest) 
     {
         Token = token,
         Email = user.SuperUseremail
+    });
+});
+
+////////////////////////////////////////////////////////////////////
+/////////////////////////AUTHENTICATION USERS///////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapPost("/authenticate-user", async (AppDbContext db, LoginRequestUser loginRequestUser) =>
+{
+    var user = await db.User.FindAsync(loginRequestUser.Email);
+
+    if (user == null)
+        return Results.NotFound("User not found");
+
+    if (user.Password != loginRequestUser.Password)
+        return Results.Unauthorized();
+
+    var token = Guid.NewGuid().ToString();
+
+    return Results.Ok(new
+    {
+        Token = token,
+        Email = user.Email
+    });
+});
+
+////////////////////////////////////////////////////////////////////
+/////////////////////////AUTHENTICATION COMPANY/////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapPost("/authenticate-company", async (AppDbContext db, LoginRequestUser loginRequestCompany) =>
+{
+    var user = await db.Company.FirstOrDefaultAsync(c => c.Email == loginRequestCompany.Email);
+
+    if (user == null)
+        return Results.NotFound("Company not found");
+
+    if (user.Password != loginRequestCompany.Password)
+        return Results.Unauthorized();
+
+    var token = Guid.NewGuid().ToString();
+
+    return Results.Ok(new
+    {
+        Token = token,
+        Email = user.Email
     });
 });
 
@@ -265,5 +314,12 @@ class Company
 public class LoginRequest
 {
     public string SuperUseremail { get; set; }
+    public string Password { get; set; }
+}
+
+
+public class LoginRequestUser
+{
+    public string Email { get; set; }
     public string Password { get; set; }
 }

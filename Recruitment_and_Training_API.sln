@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35806.99 d17.13
+VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Recruitment_and_Training_API", "Recruitment_and_Training_API\Recruitment_and_Training_API.csproj", "{2F13E6EF-CF25-4B24-AE0F-0B0674B7F304}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiClient", "MauiClient\MauiClient.csproj", "{08402980-3ABA-4D14-B12F-DB3EBE7B382A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiUserApp", "MauiUserApp\MauiUserApp.csproj", "{512649FF-B532-4284-94FC-8016548C3FDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiClientApp", "MauiClientApp\MauiClientApp.csproj", "{F704F2B3-956B-4565-B4EA-592EFC36A7FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +27,18 @@ Global
 		{08402980-3ABA-4D14-B12F-DB3EBE7B382A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08402980-3ABA-4D14-B12F-DB3EBE7B382A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{08402980-3ABA-4D14-B12F-DB3EBE7B382A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{512649FF-B532-4284-94FC-8016548C3FDE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F704F2B3-956B-4565-B4EA-592EFC36A7FE}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

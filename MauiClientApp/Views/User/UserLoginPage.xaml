@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.User.UserLoginPage"
+             BackgroundColor="Black">
+    <ScrollView>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="220" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="50" />
+            </Grid.RowDefinitions>
+            <BoxView Grid.Row="0" BackgroundColor="Gray" HeightRequest="220" HorizontalOptions="FillAndExpand"/>
+            <Label Text="Carpath.io"
+                TextColor="White"
+                FontSize="28"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                VerticalOptions="Center" />
+            <Grid Grid.Row="1" Margin="20,20,20,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="1" Text="User Login" 
+                    HorizontalOptions="Center" 
+                    FontSize="Title" 
+                    FontAttributes="Bold" 
+                    TextColor="White"/>
+                <Label Grid.Row="2" Text="Enter your credentials" 
+                    HorizontalOptions="Center" 
+                    FontSize="Subtitle" 
+                    TextColor="White"/>
+                <StackLayout Grid.Row="3" Orientation="Vertical" HorizontalOptions="Center" WidthRequest="280" Margin="0,0,0,30">
+                    <Frame BackgroundColor="Gray" CornerRadius="15" Padding="5" Margin="0,0,0,15" 
+                        HorizontalOptions="Fill">
+                        <Entry Placeholder="Email" 
+                            PlaceholderColor="#B0B0B0"
+                            TextColor="White" 
+                            Keyboard="Email"
+                            HorizontalOptions="Fill"/>
+                    </Frame>
+                    <Frame BackgroundColor="Gray" CornerRadius="15" Padding="5" Margin="0,0,0,15" 
+                        HorizontalOptions="Fill">
+                        <Entry Placeholder="Password" 
+                            PlaceholderColor="#B0B0B0"
+                            TextColor="White" 
+                            IsPassword="True"
+                            HorizontalOptions="Fill"/>
+                    </Frame>
+                    <Frame BackgroundColor="RoyalBlue" CornerRadius="15" Padding="15" WidthRequest="200" HeightRequest="60" 
+                        HorizontalOptions="Center">
+                        <Label Text="Login" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnLoginButtonTapped"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+                </StackLayout>
+            </Grid>
+        </Grid>
+    </ScrollView>
+</ContentPage>

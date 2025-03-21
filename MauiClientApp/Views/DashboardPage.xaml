@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.DashboardPage"
+             BackgroundColor="Black"
+             Title="Dashboard">
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" 
+               Text="Welcome to Carpath.io" 
+               TextColor="White"
+               FontSize="26"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,20,0,20"/>
+
+        <Label Grid.Row="1" 
+               x:Name="CompanyLabel"
+               TextColor="White"
+               FontSize="18"
+               HorizontalOptions="Center"
+               Margin="0,0,0,30"/>
+
+        <Button Grid.Row="3" 
+                Text="Logout" 
+                Command="{Binding LogoutCommand}"
+                BackgroundColor="RoyalBlue"
+                TextColor="White"
+                CornerRadius="10"
+                Margin="0,20,0,0"/>
+    </Grid>
+</ContentPage>
