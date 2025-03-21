@@ -86,6 +86,11 @@ app.MapDelete("/superuser/{SuperUseremail}", async (AppDbContext db, string Supe
 app.MapGet("/user", async (AppDbContext db) =>
     await db.User.ToListAsync());
 
+app.MapGet("/user/byemail/{email}", async (AppDbContext db, string email) =>
+    await db.User.FirstOrDefaultAsync(u => u.Email == email) is User user
+        ? Results.Ok(user)
+        : Results.NotFound());
+
 app.MapGet("/user/{id}", async (AppDbContext db, int id) =>
     await db.User.FindAsync(id) is User user ? Results.Ok(user) : Results.NotFound());
 
@@ -202,21 +207,29 @@ app.MapPost("/authenticate", async (AppDbContext db, LoginRequest loginRequest) 
 ////////////////////////////////////////////////////////////////////
 app.MapPost("/authenticate-user", async (AppDbContext db, LoginRequestUser loginRequestUser) =>
 {
-    var user = await db.User.FindAsync(loginRequestUser.Email);
-
-    if (user == null)
-        return Results.NotFound("User not found");
-
-    if (user.Password != loginRequestUser.Password)
-        return Results.Unauthorized();
-
-    var token = Guid.NewGuid().ToString();
-
-    return Results.Ok(new
+    try
     {
-        Token = token,
-        Email = user.Email
-    });
+        // Find user by email instead of trying to use FindAsync with email as primary key
+        var user = await db.User.FirstOrDefaultAsync(u => u.Email == loginRequestUser.Email);
+
+        if (user == null)
+            return Results.NotFound("User not found");
+
+        if (user.Password != loginRequestUser.Password)
+            return Results.Unauthorized();
+
+        var token = Guid.NewGuid().ToString();
+
+        return Results.Ok(new
+        {
+            Token = token,
+            Email = user.Email
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Authentication error: {ex.Message}");
+    }
 });
 
 ////////////////////////////////////////////////////////////////////

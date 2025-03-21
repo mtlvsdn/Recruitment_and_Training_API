@@ -26,7 +26,10 @@
         public string Token { get; private set; }
         public string Email { get; private set; }
         public string CompanyName { get; private set; }
+        public string UserFullName { get; private set; }
         public bool IsLoggedIn => !string.IsNullOrEmpty(Token);
+        public bool IsCompanyLogin => !string.IsNullOrEmpty(CompanyName) && string.IsNullOrEmpty(UserFullName);
+        public bool IsUserLogin => !string.IsNullOrEmpty(UserFullName);
 
         public void SetSession(string token, string email, string companyName = null)
         {
@@ -35,11 +38,18 @@
             CompanyName = companyName;
         }
 
+        public void SetUserDetails(string fullName, string companyName)
+        {
+            UserFullName = fullName;
+            CompanyName = companyName;
+        }
+
         public void ClearSession()
         {
             Token = null;
             Email = null;
             CompanyName = null;
+            UserFullName = null;
         }
     }
 }

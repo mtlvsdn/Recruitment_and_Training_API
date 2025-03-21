@@ -8,6 +8,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -20,14 +21,40 @@
                HorizontalOptions="Center"
                Margin="0,20,0,20"/>
 
-        <Label Grid.Row="1" 
-               x:Name="CompanyLabel"
-               TextColor="White"
-               FontSize="18"
-               HorizontalOptions="Center"
-               Margin="0,0,0,30"/>
+        <!-- Company information - visible only for company login -->
+        <StackLayout Grid.Row="1" IsVisible="{Binding IsCompanyLogin}">
+            <Label Text="Company Dashboard" 
+                   TextColor="White"
+                   FontSize="22"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10"/>
+            <Label x:Name="CompanyLabel"
+                   TextColor="White"
+                   FontSize="18"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,30"/>
+        </StackLayout>
 
-        <Button Grid.Row="3" 
+        <!-- User information - visible only for user login -->
+        <StackLayout Grid.Row="2" IsVisible="{Binding IsUserLogin}">
+            <Label Text="User Dashboard" 
+                   TextColor="White"
+                   FontSize="22"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10"/>
+            <Label x:Name="UserLabel"
+                   TextColor="White"
+                   FontSize="18"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,10"/>
+            <Label x:Name="UserCompanyLabel"
+                   TextColor="White"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,30"/>
+        </StackLayout>
+
+        <Button Grid.Row="4" 
                 Text="Logout" 
                 Command="{Binding LogoutCommand}"
                 BackgroundColor="RoyalBlue"
