@@ -1,5 +1,6 @@
 ﻿using MauiClientApp.Services;
 using MauiClientApp.Views;
+using MauiClientApp.Views.Company;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -16,12 +17,42 @@ namespace MauiClientApp.ViewModels
         public bool IsUserLogin => _sessionManager.IsUserLogin;
 
         public ICommand LogoutCommand { get; }
+        public ICommand ManageUsersCommand { get; }
+        public ICommand CreateTestsCommand { get; }
+        public ICommand ViewAnalyticsCommand { get; }
+        public ICommand CompanySettingsCommand { get; }
 
         public DashboardViewModel()
         {
             _sessionManager = SessionManager.Instance;
+
+            ManageUsersCommand = new Command(OpenManageUsers);
+            //CreateTestsCommand = new Command(OpenCreateTests);
+            //ViewAnalyticsCommand = new Command(OpenViewAnalytics);
+            //CompanySettingsCommand = new Command(OpenCompanySettings);
+
             LogoutCommand = new Command(Logout);
         }
+
+        private async void OpenManageUsers()
+        {
+            await Application.Current.MainPage.Navigation.PushAsync(new ManageUsers());
+        }
+
+        //private async void OpenCreateTests()
+        //{
+        //    await Application.Current.MainPage.Navigation.PushAsync(new CreateTestsPage());
+        //}
+
+        //private async void OpenViewAnalytics()
+        //{
+        //    await Application.Current.MainPage.Navigation.PushAsync(new ViewAnalyticsPage());
+        //}
+
+        //private async void OpenCompanySettings()
+        //{
+        //    await Application.Current.MainPage.Navigation.PushAsync(new CompanySettingsPage());
+        //}
 
         private async void Logout()
         {

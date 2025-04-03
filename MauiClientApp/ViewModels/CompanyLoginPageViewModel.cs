@@ -93,22 +93,20 @@ namespace MauiClientApp.ViewModels
 
                 if (!string.IsNullOrEmpty(response.Token))
                 {
-                    // Store session information
-                    SessionManager.Instance.SetSession(response.Token, response.Email);
-
-                    // Get company details to store company name
+                    // Get company details
                     var company = await _apiService.GetAsync<Company>($"company/byemail/{Email}");
                     if (company != null)
                     {
+                        // Store session information for company
                         SessionManager.Instance.SetSession(response.Token, response.Email, company.Company_Name);
                     }
+                    else
+                    {
+                        SessionManager.Instance.SetSession(response.Token, response.Email);
+                    }
 
-                    // Navigate to the main app shell or dashboard
-                    //await Shell.Current.GoToAsync("///CompanyHomePage");
-                    //await Navigation.PushAsync(new CompanyHomePage());
+                    // Navigate to the company dashboard
                     Application.Current.MainPage = new NavigationPage(new DashboardPage());
-
-
                 }
                 else
                 {

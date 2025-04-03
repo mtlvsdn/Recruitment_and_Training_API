@@ -6,12 +6,20 @@ namespace MauiClientApp.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value is bool boolValue ? !boolValue : value;
+            if (value is bool boolValue)
+            {
+                return !boolValue;
+            }
+            return value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value is bool boolValue ? !boolValue : value;
+            if (value is bool boolValue)
+            {
+                return !boolValue;
+            }
+            return value;
         }
     }
 
@@ -19,7 +27,11 @@ namespace MauiClientApp.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return !string.IsNullOrEmpty(value as string);
+            if (value is string stringValue)
+            {
+                return !string.IsNullOrEmpty(stringValue);
+            }
+            return value != null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

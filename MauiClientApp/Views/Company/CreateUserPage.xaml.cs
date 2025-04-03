@@ -3,11 +3,12 @@ using Microsoft.Maui.Controls;
 
 namespace MauiClientApp.Views.Company
 {
-    public partial class CompanyHomePage : ContentPage
+    public partial class CreateUserPage : ContentPage
     {
-        public CompanyHomePage()
+        public CreateUserPage()
         {
             InitializeComponent();
+            BindingContext = new CreateUserPageViewModel();
         }
     }
 }

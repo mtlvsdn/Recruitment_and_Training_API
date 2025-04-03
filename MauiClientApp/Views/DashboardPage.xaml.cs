@@ -1,32 +1,19 @@
 using MauiClientApp.Services;
 using MauiClientApp.ViewModels;
 
-namespace MauiClientApp.Views
+namespace MauiClientApp.Views;
+
+public partial class DashboardPage : ContentPage
 {
-    public partial class DashboardPage : ContentPage
+    public DashboardPage()
     {
-        private DashboardViewModel _viewModel;
-        private SessionManager _sessionManager;
+        InitializeComponent();
+        BindingContext = new DashboardViewModel();
 
-        public DashboardPage()
-        {
-            InitializeComponent();
+        // Display the company name
+        var companyName = SessionManager.Instance.CompanyName;
+        var email = SessionManager.Instance.Email;
 
-            _viewModel = new DashboardViewModel();
-            BindingContext = _viewModel;
-
-            _sessionManager = SessionManager.Instance;
-
-            // Set label texts based on session information
-            if (_sessionManager.IsCompanyLogin)
-            {
-                CompanyLabel.Text = $"Company: {_sessionManager.CompanyName}";
-            }
-            else if (_sessionManager.IsUserLogin)
-            {
-                UserLabel.Text = $"Welcome, {_sessionManager.UserFullName}";
-                UserCompanyLabel.Text = $"Company: {_sessionManager.CompanyName}";
-            }
-        }
+        CompanyLabel.Text = $"Company: {companyName}\nEmail: {email}";
     }
 }

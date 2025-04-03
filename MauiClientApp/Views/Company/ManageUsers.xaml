@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.Company.ManageUsers"
+             BackgroundColor="Black">
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Label Grid.Row="0" 
+               Text="Manage User Accounts" 
+               TextColor="White"
+               FontSize="24"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,15,0,15"/>
+
+        <!-- Create New User Button -->
+        <Button Grid.Row="1" 
+                Text="Create New User" 
+                BackgroundColor="Green" 
+                TextColor="White" 
+                CornerRadius="8"
+                HorizontalOptions="Start"
+                Margin="0,0,0,15"
+                Command="{Binding CreateNewUserCommand}"/>
+
+        <!-- Table Headers -->
+        <Grid Grid.Row="2" Padding="10,5" BackgroundColor="Gray">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+            <Label Text="Full Name" TextColor="White" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="1" Text="Email" TextColor="White" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Grid.Column="2" Text="Actions" TextColor="White" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center"/>
+        </Grid>
+
+        <!-- Loading Indicator / Error Message / Users Table -->
+        <Grid Grid.Row="3">
+            <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                               IsVisible="{Binding IsLoading}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               Color="White"/>
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullOrEmptyConverter}}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"/>
+
+            <CollectionView ItemsSource="{Binding Users}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="10,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.5*"/>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="1.5*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Text="{Binding Full_Name}" TextColor="White" FontSize="12" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding Email}" TextColor="White" FontSize="12" VerticalOptions="Center"/>
+                            <HorizontalStackLayout Grid.Column="2" Spacing="5" HorizontalOptions="Center">
+                                <Button Text="Edit" 
+                                        BackgroundColor="RoyalBlue" 
+                                        TextColor="White" 
+                                        WidthRequest="55"
+                                        HeightRequest="40"
+                                        FontSize="12"
+                                        CornerRadius="5"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditUserCommand}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Text="X" 
+                                        BackgroundColor="Red" 
+                                        TextColor="White" 
+                                        WidthRequest="45"
+                                        HeightRequest="40"
+                                        FontSize="12"
+                                        CornerRadius="5"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteUserCommand}"
+                                        CommandParameter="{Binding}"/>
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage>

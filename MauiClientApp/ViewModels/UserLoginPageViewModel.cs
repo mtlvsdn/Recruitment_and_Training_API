@@ -1,5 +1,6 @@
 ﻿using MauiClientApp.Services;
 using MauiClientApp.Views;
+using MauiClientApp.Models;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -99,12 +100,11 @@ namespace MauiClientApp.ViewModels
                     var user = await _apiService.GetAsync<User>($"user/byemail/{Email}");
                     if (user != null)
                     {
-                        SessionManager.Instance.SetUserDetails(user.Full_Name, user.Company_Name);
-                        //SessionManager.Instance.SetSession(response.Token, response.Email, user.Company_Name);
+                        SessionManager.Instance.SetUserDetails(user.Full_Name, user.Company_Name, user.Id);
                     }
 
-                    // Navigate to the dashboard
-                    Application.Current.MainPage = new NavigationPage(new DashboardPage());
+                    // Navigate to the user dashboard instead of the company dashboard
+                    Application.Current.MainPage = new NavigationPage(new UserDashboardPage());
                 }
                 else
                 {
@@ -127,15 +127,6 @@ namespace MauiClientApp.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-    }
-
-    public class User
-    {
-        public int Id { get; set; }
-        public string Full_Name { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string Company_Name { get; set; }
     }
 
     // This class should match the response from the authenticate-user endpoint

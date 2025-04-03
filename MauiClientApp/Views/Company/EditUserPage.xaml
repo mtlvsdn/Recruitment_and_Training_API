@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.Company.EditUserPage"
+             Title="EditUserPage"
+             BackgroundColor="Black">
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Page Title -->
+        <Label Text="Edit User"
+           FontSize="24"
+           FontAttributes="Bold"
+           TextColor="White"
+           HorizontalOptions="Center"
+           Margin="0,0,0,20"/>
+
+        <!-- Input Fields -->
+        <StackLayout Grid.Row="1" Spacing="15">
+            <!-- ID (disabled) -->
+            <Label Text="ID:" TextColor="White"/>
+            <Entry Text="{Binding Id}" IsEnabled="False" BackgroundColor="#333333" TextColor="White"/>
+
+            <!-- Full Name -->
+            <Label Text="Full Name:" TextColor="White"/>
+            <Entry Text="{Binding FullName}" Placeholder="Enter full name" BackgroundColor="#333333" TextColor="White"/>
+
+            <!-- Email -->
+            <Label Text="Email:" TextColor="White"/>
+            <Entry Text="{Binding Email}" Placeholder="Enter email" BackgroundColor="#333333" TextColor="White"/>
+
+            <!-- Password -->
+            <Label Text="Password:" TextColor="White"/>
+            <Entry Text="{Binding Password}" Placeholder="Enter password" IsPassword="True" BackgroundColor="#333333" TextColor="White"/>
+
+            <!-- Company Name (disabled) -->
+            <Label Text="Company Name:" TextColor="White"/>
+            <Entry Text="{Binding CompanyName}" IsEnabled="False" BackgroundColor="#333333" TextColor="White"/>
+        </StackLayout>
+
+        <!-- Buttons -->
+        <StackLayout Grid.Row="2" Orientation="Horizontal" HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
+            <Button Text="Save" BackgroundColor="Green" TextColor="White" Command="{Binding SaveCommand}"/>
+            <Button Text="Cancel" BackgroundColor="Gray" TextColor="White" Command="{Binding CancelCommand}"/>
+        </StackLayout>
+    </Grid>
+</ContentPage>
