@@ -11,71 +11,119 @@
     </ContentPage.BindingContext>
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
-            <Label Text="{Binding PageTitle}" 
-                   FontSize="24" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center"
-                   Margin="0,0,0,20" />
-
-            <!-- Question Text Input -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Question" FontAttributes="Bold" />
-                    <Editor Placeholder="Enter your question here" 
-                            Text="{Binding QuestionText}"
-                            HeightRequest="150"
-                            AutoSize="TextChanges" />
-                </VerticalStackLayout>
+        <StackLayout Padding="20">
+            <!-- Question Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Question" 
+                           TextColor="White" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    <Editor Text="{Binding QuestionText}"
+                            Placeholder="Enter your question"
+                            PlaceholderColor="Gray"
+                            TextColor="White"
+                            HeightRequest="100"
+                            AutoSize="TextChanges"/>
+                </StackLayout>
             </Frame>
 
-            <!-- Answer A Input -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Answer A" FontAttributes="Bold" />
-                    <Entry Placeholder="Enter answer A" Text="{Binding AnswerA}" />
-                </VerticalStackLayout>
+            <!-- Answer A Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Answer A" 
+                           TextColor="White" 
+                           FontSize="16" 
+                           FontAttributes="Bold"/>
+                    <Entry Text="{Binding AnswerA}"
+                           Placeholder="Enter Answer A"
+                           PlaceholderColor="Gray"
+                           TextColor="White"/>
+                </StackLayout>
             </Frame>
 
-            <!-- Answer B Input -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Answer B" FontAttributes="Bold" />
-                    <Entry Placeholder="Enter answer B" Text="{Binding AnswerB}" />
-                </VerticalStackLayout>
+            <!-- Answer B Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Answer B" 
+                           TextColor="White" 
+                           FontSize="16" 
+                           FontAttributes="Bold"/>
+                    <Entry Text="{Binding AnswerB}"
+                           Placeholder="Enter Answer B"
+                           PlaceholderColor="Gray"
+                           TextColor="White"/>
+                </StackLayout>
             </Frame>
 
-            <!-- Answer C Input -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Answer C" FontAttributes="Bold" />
-                    <Entry Placeholder="Enter answer C" Text="{Binding AnswerC}" />
-                </VerticalStackLayout>
+            <!-- Answer C Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Answer C" 
+                           TextColor="White" 
+                           FontSize="16" 
+                           FontAttributes="Bold"/>
+                    <Entry Text="{Binding AnswerC}"
+                           Placeholder="Enter Answer C"
+                           PlaceholderColor="Gray"
+                           TextColor="White"/>
+                </StackLayout>
             </Frame>
 
-            <!-- Answer D Input -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Answer D" FontAttributes="Bold" />
-                    <Entry Placeholder="Enter answer D" Text="{Binding AnswerD}" />
-                </VerticalStackLayout>
+            <!-- Answer D Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Answer D" 
+                           TextColor="White" 
+                           FontSize="16" 
+                           FontAttributes="Bold"/>
+                    <Entry Text="{Binding AnswerD}"
+                           Placeholder="Enter Answer D"
+                           PlaceholderColor="Gray"
+                           TextColor="White"/>
+                </StackLayout>
             </Frame>
 
-            <!-- Buttons -->
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
-                <Button Text="Back" 
-                        WidthRequest="120" 
+            <!-- Correct Answer Frame -->
+            <Frame BackgroundColor="#333333" 
+                   Padding="15" 
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Correct Answer" 
+                           TextColor="White" 
+                           FontSize="16" 
+                           FontAttributes="Bold"/>
+                    <Entry Text="{Binding CorrectAnswer}"
+                           Placeholder="Enter the correct answer (must match one of the above answers)"
+                           PlaceholderColor="Gray"
+                           TextColor="White"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Navigation Buttons -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                <Button Grid.Column="0"
+                        Text="Back"
                         Command="{Binding BackCommand}"
-                        BackgroundColor="#E0E0E0"
-                        TextColor="Black" />
-                
-                <Button Text="Next"
-                        WidthRequest="120"
+                        BackgroundColor="Gray"
+                        TextColor="White"/>
+                <Button Grid.Column="1"
+                        Text="Next"
                         Command="{Binding NextCommand}"
-                        IsEnabled="{Binding IsNextEnabled}"
-                        BackgroundColor="#4CAF50"
-                        TextColor="White" />
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+                        BackgroundColor="RoyalBlue"
+                        TextColor="White"
+                        IsEnabled="{Binding IsNextEnabled}"/>
+            </Grid>
+        </StackLayout>
     </ScrollView>
 </ContentPage> 

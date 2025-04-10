@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
              x:Class="MauiClientApp.Views.Tests.TestSummaryPage"
-             Title="Test Summary">
+             Title="Test Summary"
+             BackgroundColor="Black">
 
     <ContentPage.BindingContext>
         <viewmodels:TestSummaryViewModel />
@@ -18,79 +19,106 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
-            <Label Text="Test Summary" 
-                   FontSize="24" 
-                   FontAttributes="Bold" 
+        <StackLayout Padding="20">
+            <!-- Header -->
+            <Label Text="Test Summary"
+                   TextColor="White"
+                   FontSize="24"
+                   FontAttributes="Bold"
                    HorizontalOptions="Center"
-                   Margin="0,0,0,20" />
+                   Margin="0,0,0,20"/>
 
-            <!-- Test Details -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="15">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Test Details" FontAttributes="Bold" FontSize="18" />
-                    
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
-                        <Label Text="Title:" Grid.Row="0" Grid.Column="0" FontAttributes="Bold" />
-                        <Label Text="{Binding Test.TestName, Converter={StaticResource NullToEmptyStringConverter}, FallbackValue='New Test'}" Grid.Row="0" Grid.Column="1" />
-                        
-                        <Label Text="Questions:" Grid.Row="1" Grid.Column="0" FontAttributes="Bold" />
-                        <Label Text="{Binding Test.NumberOfQuestions, Converter={StaticResource NullToZeroConverter}, FallbackValue='0'}" Grid.Row="1" Grid.Column="1" />
-                        
-                        <Label Text="Time Limit:" Grid.Row="2" Grid.Column="0" FontAttributes="Bold" />
-                        <Label Grid.Row="2" Grid.Column="1">
-                            <Label.Text>
-                                <MultiBinding StringFormat="{}{0} minutes">
-                                    <Binding Path="Test.TimeLimit" Converter="{StaticResource NullToZeroConverter}" FallbackValue="60" />
-                                </MultiBinding>
-                            </Label.Text>
-                        </Label>
+            <!-- Test Details Frame -->
+            <Frame BackgroundColor="#333333"
+                   Padding="15"
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Test Details"
+                           TextColor="White"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           Margin="0,0,0,10"/>
+
+                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="10">
+                        <Label Grid.Row="0" Grid.Column="0"
+                               Text="Title:"
+                               TextColor="LightGray"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Row="0" Grid.Column="1"
+                               Text="{Binding Test.TestName, Converter={StaticResource NullToEmptyStringConverter}, FallbackValue='New Test'}"
+                               TextColor="White"/>
+
+                        <Label Grid.Row="1" Grid.Column="0"
+                               Text="Questions:"
+                               TextColor="LightGray"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Row="1" Grid.Column="1"
+                               Text="{Binding Test.NumberOfQuestions, Converter={StaticResource NullToZeroConverter}, FallbackValue='0'}"
+                               TextColor="White"/>
+
+                        <Label Grid.Row="2" Grid.Column="0"
+                               Text="Time Limit:"
+                               TextColor="LightGray"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Row="2" Grid.Column="1"
+                               Text="{Binding Test.TimeLimit, StringFormat='{0} minutes'}"
+                               TextColor="White"/>
                     </Grid>
-                </VerticalStackLayout>
+                </StackLayout>
             </Frame>
 
-            <!-- User Selection -->
-            <Frame BorderColor="LightGray" CornerRadius="5" Padding="15">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Assign Users" FontAttributes="Bold" FontSize="18" />
-                    <Label Text="Select users who should complete this test:" />
-                    
-                    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
-                    
-                    <CollectionView ItemsSource="{Binding Users}" 
-                                   SelectionMode="None"
-                                   EmptyView="No users available">
+            <!-- Assign Users Frame -->
+            <Frame BackgroundColor="#333333"
+                   Padding="15"
+                   Margin="0,0,0,15">
+                <StackLayout>
+                    <Label Text="Assign Users"
+                           TextColor="White"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           Margin="0,0,0,10"/>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                     IsVisible="{Binding IsLoading}"
+                                     Color="White"/>
+
+                    <CollectionView ItemsSource="{Binding Users}"
+                                  SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Padding="5" ColumnDefinitions="Auto,*">
-                                    <CheckBox IsChecked="{Binding IsSelected}" 
-                                             Grid.Column="0" 
-                                             VerticalOptions="Center" />
-                                    <Label Text="{Binding User.Full_Name, FallbackValue='Unknown User'}" 
-                                           Grid.Column="1" 
-                                           VerticalOptions="Center" />
+                                    <CheckBox Grid.Column="0"
+                                             IsChecked="{Binding IsSelected}"
+                                             Color="RoyalBlue"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding User.Full_Name, FallbackValue='Unknown User'}"
+                                           TextColor="White"
+                                           VerticalOptions="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="No users available"
+                                   TextColor="Gray"
+                                   HorizontalOptions="Center"/>
+                        </CollectionView.EmptyView>
                     </CollectionView>
-                </VerticalStackLayout>
+                </StackLayout>
             </Frame>
 
-            <!-- Buttons -->
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
-                <Button Text="Back" 
-                        WidthRequest="120" 
+            <!-- Navigation Buttons -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,20,0,0">
+                <Button Grid.Column="0"
+                        Text="Back"
                         Command="{Binding BackCommand}"
-                        BackgroundColor="#E0E0E0"
-                        TextColor="Black" />
-                
-                <Button Text="Finish"
-                        WidthRequest="120"
+                        BackgroundColor="Gray"
+                        TextColor="White"/>
+                <Button Grid.Column="1"
+                        Text="Finish"
                         Command="{Binding FinishCommand}"
-                        IsEnabled="{Binding IsFinishEnabled}"
-                        BackgroundColor="#4CAF50"
-                        TextColor="White" />
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+                        BackgroundColor="RoyalBlue"
+                        TextColor="White"/>
+            </Grid>
+        </StackLayout>
     </ScrollView>
 </ContentPage> 

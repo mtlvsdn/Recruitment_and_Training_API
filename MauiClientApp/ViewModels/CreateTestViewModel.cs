@@ -72,8 +72,8 @@ namespace MauiClientApp.ViewModels
 
         public CreateTestViewModel()
         {
+            BackCommand = new Command(async () => await OnBack());
             NextCommand = new Command(OnNext, () => IsNextEnabled);
-            BackCommand = new Command(OnBack);
             
             // Initialize with empty values
             TestTitle = string.Empty;
@@ -145,9 +145,16 @@ namespace MauiClientApp.ViewModels
             }
         }
 
-        private async void OnBack()
+        private async Task OnBack()
         {
-            await Shell.Current.GoToAsync("..");
+            try
+            {
+                await Application.Current.MainPage.Navigation.PopAsync();
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Failed to navigate back: {ex.Message}", "OK");
+            }
         }
 
         #region INotifyPropertyChanged

@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using MauiClientApp.Models;
+using MauiClientApp.Views.Tests;
 
 namespace MauiClientApp.ViewModels
 {
@@ -19,6 +20,7 @@ namespace MauiClientApp.ViewModels
         private string _answerC;
         private string _answerD;
         private bool _isNextEnabled;
+        private string _correctAnswer;
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
@@ -150,6 +152,20 @@ namespace MauiClientApp.ViewModels
             }
         }
 
+        public string CorrectAnswer
+        {
+            get => _correctAnswer;
+            set
+            {
+                if (_correctAnswer != value)
+                {
+                    _correctAnswer = value;
+                    OnPropertyChanged();
+                    ValidateInputs();
+                }
+            }
+        }
+
         public bool IsNextEnabled
         {
             get => _isNextEnabled;
@@ -168,7 +184,7 @@ namespace MauiClientApp.ViewModels
 
         public CreateQuestionViewModel()
         {
-            NextCommand = new Command(OnNext, () => IsNextEnabled);
+            NextCommand = new Command(async () => await OnNext(), () => IsNextEnabled);
             BackCommand = new Command(OnBack);
             
             // Initialize with empty values
@@ -177,6 +193,7 @@ namespace MauiClientApp.ViewModels
             AnswerB = string.Empty;
             AnswerC = string.Empty;
             AnswerD = string.Empty;
+            CorrectAnswer = string.Empty;
             IsNextEnabled = false;
         }
 
@@ -186,169 +203,82 @@ namespace MauiClientApp.ViewModels
                           !string.IsNullOrWhiteSpace(AnswerA) &&
                           !string.IsNullOrWhiteSpace(AnswerB) &&
                           !string.IsNullOrWhiteSpace(AnswerC) &&
-                          !string.IsNullOrWhiteSpace(AnswerD);
+                          !string.IsNullOrWhiteSpace(AnswerD) &&
+                          !string.IsNullOrWhiteSpace(CorrectAnswer) &&
+                          (CorrectAnswer == AnswerA || 
+                           CorrectAnswer == AnswerB || 
+                           CorrectAnswer == AnswerC || 
+                           CorrectAnswer == AnswerD);
             
             IsNextEnabled = isValid;
             ((Command)NextCommand).ChangeCanExecute();
         }
 
-        private async void OnNext()
+        private async Task OnNext()
         {
-            try
+            if (string.IsNullOrWhiteSpace(QuestionText))
             {
-                // Create question object
-                Question question = new Question
-                {
-                    QuestionText = QuestionText,
-                    PossibleAnswer1 = AnswerA,
-                    PossibleAnswer2 = AnswerB,
-                    PossibleAnswer3 = AnswerC,
-                    PossibleAnswer4 = AnswerD,
-                    // We'll set the correct answer as Answer A for now, but this could be enhanced with a radio button selection
-                    CorrectAnswer = AnswerA
-                };
-                
-                // Safety check for null Test
-                if (Test == null)
-                {
-                    Test = new Test
-                    {
-                        TestName = "New Test",
-                        NumberOfQuestions = TotalQuestions,
-                        TimeLimit = 60 // Default 60 minutes
-                    };
-                }
-                
-                // Always ensure NumberOfQuestions is correctly set
-                Test.NumberOfQuestions = TotalQuestions;
-                
-                // Safety check for null Questions collection
-                if (Test.Questions == null)
-                {
-                    Test.Questions = new System.Collections.ObjectModel.ObservableCollection<Question>();
-                }
-                
-                // Add the question to the test
-                Test.Questions.Add(question);
-                
-                if (QuestionNumber < TotalQuestions)
-                {
-                    try
-                    {
-                        // Navigate to the next question using direct page creation
-                        var nextPage = new MauiClientApp.Views.Tests.CreateQuestionPage();
-                        var nextViewModel = nextPage.BindingContext as CreateQuestionViewModel;
-                        
-                        if (nextViewModel != null)
-                        {
-                            // Directly set properties instead of using query parameters
-                            nextViewModel.QuestionNumber = QuestionNumber + 1;
-                            nextViewModel.TotalQuestions = TotalQuestions;
-                            nextViewModel.Test = Test;
-                            
-                            await Application.Current.MainPage.Navigation.PushAsync(nextPage);
-                        }
-                        else
-                        {
-                            // Fallback to Shell navigation
-                            int nextQuestionNumber = QuestionNumber + 1;
-                            await Shell.Current.GoToAsync($"//CreateQuestionPage?questionNumber={nextQuestionNumber}&totalQuestions={TotalQuestions}",
-                                new Dictionary<string, object>
-                                {
-                                    { "Test", Test }
-                                });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        await Shell.Current.DisplayAlert("Navigation Error", $"Failed to navigate to next question: {ex.Message}", "OK");
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        // Navigate to summary page using direct page creation
-                        var summaryPage = new MauiClientApp.Views.Tests.TestSummaryPage();
-                        if (summaryPage.BindingContext is TestSummaryViewModel summaryViewModel)
-                        {
-                            // Make sure Test is not null before passing it
-                            if (Test == null)
-                            {
-                                Test = new Test
-                                {
-                                    TestName = "New Test",
-                                    NumberOfQuestions = TotalQuestions,
-                                    TimeLimit = 60, // Default 60 minutes
-                                    Questions = new System.Collections.ObjectModel.ObservableCollection<Question>()
-                                };
-                            }
-
-                            // Make sure Questions collection is never null
-                            if (Test.Questions == null)
-                            {
-                                Test.Questions = new System.Collections.ObjectModel.ObservableCollection<Question>();
-                            }
-
-                            // Add the current question to the test if it doesn't already contain it
-                            Question currentQuestion = new Question
-                            {
-                                QuestionText = QuestionText,
-                                PossibleAnswer1 = AnswerA,
-                                PossibleAnswer2 = AnswerB,
-                                PossibleAnswer3 = AnswerC,
-                                PossibleAnswer4 = AnswerD,
-                                CorrectAnswer = AnswerA // You might want to improve this
-                            };
-
-                            // Avoid duplicate questions
-                            bool questionExists = Test.Questions.Any(q => q.QuestionText == currentQuestion.QuestionText);
-                            if (!questionExists)
-                            {
-                                Test.Questions.Add(currentQuestion);
-                            }
-
-                            // Set Test properties and navigate
-                            summaryViewModel.Test = Test;
-                            await Application.Current.MainPage.Navigation.PushAsync(summaryPage);
-                        }
-                        else
-                        {
-                            // Enhanced logging for debugging
-                            Console.WriteLine("WARNING: summaryViewModel is null!");
-
-                            // Fallback to Shell navigation with additional safety checks
-                            if (Test == null)
-                            {
-                                // Create a minimal valid Test object for navigation
-                                Test = new Test
-                                {
-                                    TestName = "New Test",
-                                    NumberOfQuestions = TotalQuestions,
-                                    TimeLimit = 60
-                                };
-                                Console.WriteLine("Created default Test object for navigation");
-                            }
-
-                            await Shell.Current.GoToAsync("//TestSummaryPage",
-                                new Dictionary<string, object>
-                                {
-                                    { "Test", Test }
-                                });
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Enhanced error logging
-                        Console.WriteLine($"Navigation Error Details: {ex.GetType().Name}");
-                        Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                        await Shell.Current.DisplayAlert("Navigation Error", $"Failed to navigate to summary page: {ex.Message}", "OK");
-                    }
-                }
+                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please enter a question", "OK");
+                return;
             }
-            catch (Exception ex)
+
+            if (string.IsNullOrWhiteSpace(AnswerA) || string.IsNullOrWhiteSpace(AnswerB) ||
+                string.IsNullOrWhiteSpace(AnswerC) || string.IsNullOrWhiteSpace(AnswerD))
             {
-                await Shell.Current.DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please fill in all answer options", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(CorrectAnswer))
+            {
+                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please enter the correct answer", "OK");
+                return;
+            }
+
+            // Check if the correct answer matches one of the possible answers
+            if (CorrectAnswer != AnswerA && CorrectAnswer != AnswerB && 
+                CorrectAnswer != AnswerC && CorrectAnswer != AnswerD)
+            {
+                await Application.Current.MainPage.DisplayAlert("Validation Error", 
+                    "The correct answer must exactly match one of the possible answers (A, B, C, or D)", "OK");
+                return;
+            }
+
+            // Create the question object
+            var question = new Question
+            {
+                QuestionText = QuestionText,
+                PossibleAnswer1 = AnswerA,
+                PossibleAnswer2 = AnswerB,
+                PossibleAnswer3 = AnswerC,
+                PossibleAnswer4 = AnswerD,
+                CorrectAnswer = CorrectAnswer
+            };
+
+            // Add the question to the test
+            Test.Questions.Add(question);
+
+            // If this was the last question, navigate to the test summary
+            if (QuestionNumber >= TotalQuestions)
+            {
+                var summaryPage = new TestSummaryPage();
+                var viewModel = summaryPage.BindingContext as TestSummaryViewModel;
+                if (viewModel != null)
+                {
+                    viewModel.Test = Test;
+                }
+                await Application.Current.MainPage.Navigation.PushAsync(summaryPage);
+            }
+            else
+            {
+                // Clear the form for the next question
+                QuestionNumber++;
+                QuestionText = string.Empty;
+                AnswerA = string.Empty;
+                AnswerB = string.Empty;
+                AnswerC = string.Empty;
+                AnswerD = string.Empty;
+                CorrectAnswer = string.Empty;
             }
         }
 
