@@ -1,6 +1,7 @@
 ﻿using MauiClientApp.Services;
 using MauiClientApp.Views;
 using MauiClientApp.Views.Company;
+using MauiClientApp.Views.Tests;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -19,6 +20,7 @@ namespace MauiClientApp.ViewModels
         public ICommand LogoutCommand { get; }
         public ICommand ManageUsersCommand { get; }
         public ICommand CreateTestsCommand { get; }
+        public ICommand ViewTestsCommand { get; }
         public ICommand ViewAnalyticsCommand { get; }
         public ICommand CompanySettingsCommand { get; }
 
@@ -27,10 +29,10 @@ namespace MauiClientApp.ViewModels
             _sessionManager = SessionManager.Instance;
 
             ManageUsersCommand = new Command(OpenManageUsers);
-            //CreateTestsCommand = new Command(OpenCreateTests);
-            //ViewAnalyticsCommand = new Command(OpenViewAnalytics);
-            //CompanySettingsCommand = new Command(OpenCompanySettings);
-
+            CreateTestsCommand = new Command(OpenCreateTests);
+            ViewTestsCommand = new Command(async () => await OnViewTests());
+            ViewAnalyticsCommand = new Command(OpenViewAnalytics);
+            CompanySettingsCommand = new Command(OpenCompanySettings);
             LogoutCommand = new Command(Logout);
         }
 
@@ -39,20 +41,39 @@ namespace MauiClientApp.ViewModels
             await Application.Current.MainPage.Navigation.PushAsync(new ManageUsers());
         }
 
-        //private async void OpenCreateTests()
-        //{
-        //    await Application.Current.MainPage.Navigation.PushAsync(new CreateTestsPage());
-        //}
+        private async void OpenCreateTests()
+        {
+            await Application.Current.MainPage.Navigation.PushAsync(new CreateTestPage());
+        }
 
-        //private async void OpenViewAnalytics()
-        //{
-        //    await Application.Current.MainPage.Navigation.PushAsync(new ViewAnalyticsPage());
-        //}
+        private async Task OnViewTests()
+        {
+            try
+            {
+                await Application.Current.MainPage.Navigation.PushAsync(new TestsPage());
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Failed to navigate to Tests page: {ex.Message}", "OK");
+            }
+        }
 
-        //private async void OpenCompanySettings()
-        //{
-        //    await Application.Current.MainPage.Navigation.PushAsync(new CompanySettingsPage());
-        //}
+        private async void OpenViewAnalytics()
+        {
+            await Application.Current.MainPage.Navigation.PushAsync(new ViewAnalyticsPage());
+        }
+
+        private async void OpenCompanySettings()
+        {
+            try
+            {
+                await Application.Current.MainPage.Navigation.PushAsync(new CompanySettingsPage());
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Failed to navigate to Company Settings: {ex.Message}", "OK");
+            }
+        }
 
         private async void Logout()
         {

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             x:Class="MauiClientApp.Views.Tests.CreateTestPage"
+             Title="Create Test"
+             BackgroundColor="Black">
+
+    <ContentPage.BindingContext>
+        <viewmodels:CreateTestViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            <Label Text="Create New Test" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20" />
+
+            <!-- Test Title Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Test Title" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter test title" Text="{Binding TestTitle}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Number of Questions Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Number of Questions" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter number of questions" 
+                           Text="{Binding NumberOfQuestions}" 
+                           Keyboard="Numeric" />
+                    <Label Text="Please enter a number greater than 0" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="{Binding HasNumberOfQuestionsError}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Time Limit Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Time Limit (minutes)" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter time limit in minutes" 
+                           Text="{Binding TimeLimit}" 
+                           Keyboard="Numeric" />
+                    <Label Text="Please enter a number greater than 0" 
+                           TextColor="Red" 
+                           FontSize="12"
+                           IsVisible="{Binding HasTimeLimitError}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Buttons -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
+                <Button Text="Back" 
+                        WidthRequest="120" 
+                        Command="{Binding BackCommand}"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black" />
+                
+                <Button Text="Next"
+                        WidthRequest="120"
+                        Command="{Binding NextCommand}"
+                        IsEnabled="{Binding IsNextEnabled}"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             x:Class="MauiClientApp.Views.Tests.CreateQuestionPage"
+             Title="{Binding PageTitle}"
+             BackgroundColor="Black">
+
+    <ContentPage.BindingContext>
+        <viewmodels:CreateQuestionViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            <Label Text="{Binding PageTitle}" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20" />
+
+            <!-- Question Text Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Question" FontAttributes="Bold" />
+                    <Editor Placeholder="Enter your question here" 
+                            Text="{Binding QuestionText}"
+                            HeightRequest="150"
+                            AutoSize="TextChanges" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Answer A Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Answer A" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter answer A" Text="{Binding AnswerA}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Answer B Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Answer B" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter answer B" Text="{Binding AnswerB}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Answer C Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Answer C" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter answer C" Text="{Binding AnswerC}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Answer D Input -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="10">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Answer D" FontAttributes="Bold" />
+                    <Entry Placeholder="Enter answer D" Text="{Binding AnswerD}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Buttons -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
+                <Button Text="Back" 
+                        WidthRequest="120" 
+                        Command="{Binding BackCommand}"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black" />
+                
+                <Button Text="Next"
+                        WidthRequest="120"
+                        Command="{Binding NextCommand}"
+                        IsEnabled="{Binding IsNextEnabled}"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

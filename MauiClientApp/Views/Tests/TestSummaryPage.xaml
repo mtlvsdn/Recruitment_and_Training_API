@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             x:Class="MauiClientApp.Views.Tests.TestSummaryPage"
+             Title="Test Summary">
+
+    <ContentPage.BindingContext>
+        <viewmodels:TestSummaryViewModel />
+    </ContentPage.BindingContext>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Converters to handle null values -->
+            <viewmodels:NullToEmptyStringConverter x:Key="NullToEmptyStringConverter" />
+            <viewmodels:NullToZeroConverter x:Key="NullToZeroConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            <Label Text="Test Summary" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,20" />
+
+            <!-- Test Details -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Test Details" FontAttributes="Bold" FontSize="18" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                        <Label Text="Title:" Grid.Row="0" Grid.Column="0" FontAttributes="Bold" />
+                        <Label Text="{Binding Test.TestName, Converter={StaticResource NullToEmptyStringConverter}, FallbackValue='New Test'}" Grid.Row="0" Grid.Column="1" />
+                        
+                        <Label Text="Questions:" Grid.Row="1" Grid.Column="0" FontAttributes="Bold" />
+                        <Label Text="{Binding Test.NumberOfQuestions, Converter={StaticResource NullToZeroConverter}, FallbackValue='0'}" Grid.Row="1" Grid.Column="1" />
+                        
+                        <Label Text="Time Limit:" Grid.Row="2" Grid.Column="0" FontAttributes="Bold" />
+                        <Label Grid.Row="2" Grid.Column="1">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}{0} minutes">
+                                    <Binding Path="Test.TimeLimit" Converter="{StaticResource NullToZeroConverter}" FallbackValue="60" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- User Selection -->
+            <Frame BorderColor="LightGray" CornerRadius="5" Padding="15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Assign Users" FontAttributes="Bold" FontSize="18" />
+                    <Label Text="Select users who should complete this test:" />
+                    
+                    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+                    
+                    <CollectionView ItemsSource="{Binding Users}" 
+                                   SelectionMode="None"
+                                   EmptyView="No users available">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="5" ColumnDefinitions="Auto,*">
+                                    <CheckBox IsChecked="{Binding IsSelected}" 
+                                             Grid.Column="0" 
+                                             VerticalOptions="Center" />
+                                    <Label Text="{Binding User.Full_Name, FallbackValue='Unknown User'}" 
+                                           Grid.Column="1" 
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Buttons -->
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="20" Margin="0,20,0,0">
+                <Button Text="Back" 
+                        WidthRequest="120" 
+                        Command="{Binding BackCommand}"
+                        BackgroundColor="#E0E0E0"
+                        TextColor="Black" />
+                
+                <Button Text="Finish"
+                        WidthRequest="120"
+                        Command="{Binding FinishCommand}"
+                        IsEnabled="{Binding IsFinishEnabled}"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage> 

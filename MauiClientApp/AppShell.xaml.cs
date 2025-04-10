@@ -17,9 +17,7 @@ namespace MauiClientApp
             Routing.RegisterRoute("dashboard", typeof(DashboardPage));
             Routing.RegisterRoute("manageusers", typeof(MauiClientApp.Views.Company.ManageUsers));
             Routing.RegisterRoute("createuser", typeof(MauiClientApp.Views.Company.CreateUserPage));
-
-
-
+            Routing.RegisterRoute(nameof(TestsPage), typeof(TestsPage));
         }
     }
 }

@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiClientApp"
+    xmlns:views="clr-namespace:MauiClientApp.Views"
     Shell.FlyoutBehavior="Disabled"
     Title="MauiClientApp">
 
@@ -11,5 +12,15 @@
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+
+    <ShellContent
+        Title="Dashboard"
+        ContentTemplate="{DataTemplate views:DashboardPage}"
+        Route="DashboardPage" />
+
+    <ShellContent
+        Title="Tests"
+        ContentTemplate="{DataTemplate views:TestsPage}"
+        Route="TestsPage" />
 
 </Shell>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.Company.CompanySettingsPage"
+             BackgroundColor="Black"
+             Title="Company Settings">
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Label Grid.Row="0" 
+               Text="Welcome to Carpath.io" 
+               TextColor="White"
+               FontSize="26"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               Margin="0,20,0,20"/>
+
+        <!-- Page Title -->
+        <Label Grid.Row="1" 
+               Text="Company Settings" 
+               TextColor="White"
+               FontSize="22"
+               HorizontalOptions="Center"
+               Margin="0,0,0,20"/>
+
+        <!-- Main Content -->
+        <Frame Grid.Row="2" 
+               BackgroundColor="#333333" 
+               CornerRadius="10" 
+               Padding="15" 
+               Margin="0,10,0,20"
+               VerticalOptions="Fill">
+            <ScrollView>
+                <Grid RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" 
+                           Text="Company Information" 
+                           TextColor="White" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           Margin="0,0,0,10"/>
+
+                    <!-- Status Message -->
+                    <Label Grid.Row="1"
+                           Text="{Binding StatusMessage}"
+                           TextColor="#FF6666"
+                           IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
+                           Margin="0,0,0,10"/>
+
+                    <!-- Company Name Field -->
+                    <Label Grid.Row="2" 
+                           Text="Company Name" 
+                           TextColor="#CCCCCC"
+                           FontSize="14"/>
+                    <Entry Grid.Row="3" 
+                           Text="{Binding CompanyName}"
+                           TextColor="White"
+                           PlaceholderColor="#888888"
+                           Placeholder="Enter company name"
+                           BackgroundColor="#444444"
+                           Margin="0,0,0,5"/>
+
+                    <!-- Email Field -->
+                    <Label Grid.Row="4" 
+                           Text="Email" 
+                           TextColor="#CCCCCC"
+                           FontSize="14"/>
+                    <Entry Grid.Row="5" 
+                           Text="{Binding Email}"
+                           TextColor="White"
+                           PlaceholderColor="#888888"
+                           Placeholder="Enter company email"
+                           BackgroundColor="#444444"
+                           Keyboard="Email"
+                           Margin="0,0,0,5"/>
+
+                    <!-- Password Field -->
+                    <Label Grid.Row="6" 
+                           Text="Password" 
+                           TextColor="#CCCCCC"
+                           FontSize="14"/>
+                    <Entry Grid.Row="7" 
+                           Text="{Binding Password}"
+                           TextColor="White"
+                           PlaceholderColor="#888888"
+                           Placeholder="Enter password"
+                           BackgroundColor="#444444"
+                           IsPassword="True"
+                           Margin="0,0,0,20"/>
+
+                    <!-- Action Buttons -->
+                    <Grid Grid.Row="8" ColumnSpacing="10" Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0" 
+                                Text="Update" 
+                                BackgroundColor="Green"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="50"
+                                Command="{Binding UpdateCommand}"/>
+
+                        <Button Grid.Column="1" 
+                                Text="Cancel" 
+                                BackgroundColor="#555555"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="50"
+                                Command="{Binding CancelCommand}"/>
+                    </Grid>
+                </Grid>
+            </ScrollView>
+        </Frame>
+
+        <!-- Activity Indicator -->
+        <Grid Grid.RowSpan="4" 
+              BackgroundColor="#80000000" 
+              IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                               Color="White" 
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center"/>
+        </Grid>
+    </Grid>
+</ContentPage> 

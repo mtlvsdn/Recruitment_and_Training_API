@@ -43,176 +43,19 @@ app.UseHttpsRedirection();
 //Database Context
 var dbContext = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
 
-// Create database if it doesn't exist
-dbContext.Database.EnsureCreated();
-
 try
 {
-    // Create all necessary tables
-    await dbContext.Database.ExecuteSqlRawAsync(@"
-        -- Create SuperUser table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SuperUser')
-        BEGIN
-            CREATE TABLE SuperUser (
-                SuperUseremail VARCHAR(35) PRIMARY KEY,
-                password VARCHAR(64) NOT NULL
-            )
-        END
-
-        -- Create Company table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Company')
-        BEGIN
-            CREATE TABLE Company (
-                company_name VARCHAR(35) PRIMARY KEY,
-                email VARCHAR(35) NOT NULL,
-                password VARCHAR(64) NOT NULL,
-                nr_of_accounts INTEGER NOT NULL,
-                SuperUseremail VARCHAR(35) FOREIGN KEY REFERENCES SuperUser(SuperUseremail)
-            )
-        END
-
-        -- Create User table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'User')
-        BEGIN
-            CREATE TABLE [User] (
-                id INTEGER PRIMARY KEY,
-                full_name VARCHAR(35) NOT NULL,
-                email VARCHAR(35) NOT NULL,
-                password VARCHAR(50) NOT NULL,
-                company_name VARCHAR(35) FOREIGN KEY REFERENCES Company(company_name)
-            )
-        END
-
-        -- Create Test table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Test')
-        BEGIN
-            CREATE TABLE Test (
-                test_id INTEGER PRIMARY KEY,
-                test_name VARCHAR(35) NOT NULL,
-                no_of_questions INTEGER NOT NULL,
-                time_limit INTEGER NOT NULL
-            )
-        END
-
-        -- Create Questions table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Questions')
-        BEGIN
-            CREATE TABLE Questions (
-                question_id INTEGER PRIMARY KEY,
-                test_id INTEGER FOREIGN KEY REFERENCES Test(test_id),
-                question_text VARCHAR(255) NOT NULL,
-                correct_answer_id INTEGER NOT NULL
-            )
-        END
-
-        -- Create User_Test junction table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'User_Test')
-        BEGIN
-            CREATE TABLE User_Test (
-                Userid INTEGER NOT NULL,
-                Testtest_id INTEGER NOT NULL,
-                PRIMARY KEY (Userid, Testtest_id),
-                FOREIGN KEY (Userid) REFERENCES [User](id),
-                FOREIGN KEY (Testtest_id) REFERENCES Test(test_id)
-            )
-        END
-
-        -- Create Answers table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Answers')
-        BEGIN
-            CREATE TABLE Answers (
-                answer_id INTEGER PRIMARY KEY,
-                question_id INTEGER FOREIGN KEY REFERENCES Questions(question_id),
-                answers_text VARCHAR(255) NOT NULL
-            )
-        END
-
-        -- Create TestResponses table
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'TestResponses')
-        BEGIN
-            CREATE TABLE TestResponses (
-                response_id INTEGER PRIMARY KEY,
-                test_id INTEGER NOT NULL FOREIGN KEY REFERENCES Test(test_id),
-                user_id VARCHAR(255) NOT NULL,
-                answer_id INTEGER NOT NULL FOREIGN KEY REFERENCES Answers(answer_id),
-                Testtest_id INTEGER NOT NULL
-            )
-        END
-
-        -- Drop and recreate CV_as_PDF table
-        IF EXISTS (SELECT * FROM sys.tables WHERE name = 'CV_as_PDF')
-        BEGIN
-            DROP TABLE CV_as_PDF
-        END
-
-        CREATE TABLE CV_as_PDF (
-            cv_id INTEGER PRIMARY KEY,
-            file_name VARCHAR(35) NOT NULL,
-            file_size INTEGER NOT NULL,
-            file_data VARBINARY(2000) NOT NULL,
-            CONSTRAINT FK_CV_as_PDF_User FOREIGN KEY (cv_id) REFERENCES [User](Id) ON DELETE CASCADE
-        )
-    ");
-
-    // Insert initial data if tables are empty
-    if (!await dbContext.SuperUser.AnyAsync())
-    {
-        await dbContext.Database.ExecuteSqlRawAsync(@"
-            INSERT INTO SuperUser (SuperUseremail, password) VALUES
-            ('matei@example.com', 'welcome123'),
-            ('diana@example.com', 'welcome234'),
-            ('pitagora@example.com', 'welcome345')
-        ");
-    }
-
-    if (!await dbContext.Company.AnyAsync())
-    {
-        await dbContext.Database.ExecuteSqlRawAsync(@"
-            INSERT INTO Company (company_name, email, password, nr_of_accounts, SuperUseremail) VALUES
-            ('TechCorp', 'contact@techcorp.com', 'Secure123', 50, 'matei@example.com'),
-            ('InnovateX', 'info@innovatex.com', 'StrongPass456', 30, 'matei@example.com'),
-            ('EduSmart', 'support@edusmart.com', 'EduPass789', 20, 'diana@example.com'),
-            ('SoftVision', 'hello@softvision.com', 'Softy321', 40, 'diana@example.com'),
-            ('NextGenTech', 'contact@nextgentech.com', 'NextGen2024', 25, 'pitagora@example.com'),
-            ('BYD', 'contact@byd.com', 'BYD2024', 25, 'pitagora@example.com')
-        ");
-    }
-
-    if (!await dbContext.User.AnyAsync())
-    {
-        await dbContext.Database.ExecuteSqlRawAsync(@"
-            INSERT INTO [User] (id, full_name, email, password, company_name) VALUES
-            (1, 'Matei Popescu', 'matei@example.com', 'password123', 'TechCorp'),
-            (2, 'Diana Popescu', 'diana@example.com', 'password123', 'InnovateX'),
-            (3, 'Pitagora Cat', 'pitagora@example.com', 'admin123', 'EduSmart'),
-            (4, 'Elena Marinescu', 'elena@example.com', 'admin123', 'SoftVision'),
-            (5, 'Victor Radu', 'victor@example.com', 'admin123', 'NextGenTech'),
-            (6, 'Chang Zhen', 'chang.zhen@byd.cn', 'chang123', 'BYD'),
-            (7, 'Li Wu', 'li.wu@byd.cn', 'li123', 'BYD'),
-            (8, 'Xi Ping', 'xi.ping@byd.cn', 'xi123', 'BYD'),
-            (9, 'Calin Ion', 'calin.ion@example.com', 'calin123', 'SoftVision'),
-            (10, 'Vasile Muresanu', 'vasile.muresanu@example.com', 'vasile123', 'SoftVision'),
-            (11, 'Andrei Nitulescu', 'andrei.nitulescu@example.com', 'andrei123', 'SoftVision')
-        ");
-    }
-
-    // Add indexes for performance
-    await dbContext.Database.ExecuteSqlRawAsync(@"
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_company_name')
-            CREATE INDEX idx_company_name ON Company(company_name);
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_user_id')
-            CREATE INDEX idx_user_id ON [User](id);
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_test_id')
-            CREATE INDEX idx_test_id ON Test(test_id);
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_question_id')
-            CREATE INDEX idx_question_id ON Questions(question_id);
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_answer_id')
-            CREATE INDEX idx_answer_id ON Answers(answer_id);
-        IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_cv_id')
-            CREATE INDEX idx_cv_id ON CV_as_PDF(cv_id);
-    ");
-
-    Console.WriteLine("Database initialized successfully");
+    // Remove all table creation commands
+    // await dbContext.Database.ExecuteSqlRawAsync(@"
+    //     -- Create SuperUser table
+    //     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SuperUser')
+    //     BEGIN
+    //         CREATE TABLE SuperUser (
+    //             SuperUseremail VARCHAR(35) PRIMARY KEY,
+    //             password VARCHAR(64) NOT NULL
+    //         )
+    //     END
+    // ... existing code ...
 }
 catch (Exception ex)
 {

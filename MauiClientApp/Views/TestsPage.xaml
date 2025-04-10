@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.TestsPage"
+             Title="Company Tests"
+             BackgroundColor="Black">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <StackLayout Grid.Row="0" Padding="20,10">
+            <Label Text="Your Company's Tests"
+                   FontSize="24"
+                   TextColor="White"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
+        </StackLayout>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" Padding="20">
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                             IsVisible="{Binding IsLoading}"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"/>
+
+            <!-- No Tests Message -->
+            <StackLayout IsVisible="{Binding ShowNoTestsMessage}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center">
+                <Label Text="No tests have been created"
+                       FontSize="18"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"/>
+            </StackLayout>
+
+            <!-- Tests List -->
+            <CollectionView ItemsSource="{Binding Tests}"
+                          IsVisible="{Binding HasTests}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="0,5" Padding="15" BorderColor="LightGray">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                                <Label Grid.Row="0" Grid.Column="0"
+                                       Text="{Binding test_name}"
+                                       FontSize="18"
+                                       FontAttributes="Bold"/>
+                                
+                                <StackLayout Grid.Row="1" Grid.Column="0"
+                                           Orientation="Horizontal"
+                                           Spacing="10">
+                                    <Label Text="Questions:"/>
+                                    <Label Text="{Binding no_of_questions}"/>
+                                    <Label Text="Time Limit:"/>
+                                    <Label Text="{Binding time_limit}"/>
+                                    <Label Text="minutes"/>
+                                </StackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentPage> 
