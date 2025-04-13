@@ -6,10 +6,6 @@
              Title="Test Summary"
              BackgroundColor="Black">
 
-    <ContentPage.BindingContext>
-        <viewmodels:TestSummaryViewModel />
-    </ContentPage.BindingContext>
-
     <ContentPage.Resources>
         <ResourceDictionary>
             <!-- Converters to handle null values -->

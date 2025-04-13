@@ -13,6 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure JSON options to handle Base64 strings
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.WriteIndented = true;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+});
+
 //Configure Database Connection
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer("Server=localhost\\MSSQLSERVER01;Database=RecruitmentAndTraining;Trusted_Connection=True;TrustServerCertificate=True;"));
@@ -38,33 +45,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Configure to use both HTTP and HTTPS
 app.UseHttpsRedirection();
+
+// Run on both HTTP and HTTPS ports
+var urls = new[] { "http://0.0.0.0:7287", "https://0.0.0.0:7288" };
+app.Urls.Clear();
+foreach (var url in urls)
+{
+    app.Urls.Add(url);
+}
 
 //Database Context
 var dbContext = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
-
-try
-{
-    // Remove all table creation commands
-    // await dbContext.Database.ExecuteSqlRawAsync(@"
-    //     -- Create SuperUser table
-    //     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SuperUser')
-    //     BEGIN
-    //         CREATE TABLE SuperUser (
-    //             SuperUseremail VARCHAR(35) PRIMARY KEY,
-    //             password VARCHAR(64) NOT NULL
-    //         )
-    //     END
-    // ... existing code ...
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error initializing database: {ex.Message}");
-    if (ex.InnerException != null)
-    {
-        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-    }
-}
 
 ////////////////////////////////////////////////////////////////////
 ///////////////////////////////SUPERUSER////////////////////////////
@@ -263,21 +256,51 @@ app.MapPost("/authenticate-user", async (AppDbContext db, LoginRequestUser login
 ////////////////////////////////////////////////////////////////////
 app.MapPost("/authenticate-company", async (AppDbContext db, LoginRequestUser loginRequestCompany) =>
 {
-    var user = await db.Company.FirstOrDefaultAsync(c => c.Email == loginRequestCompany.Email);
-
-    if (user == null)
-        return Results.NotFound("Company not found");
-
-    if (user.Password != loginRequestCompany.Password)
-        return Results.Unauthorized();
-
-    var token = Guid.NewGuid().ToString();
-
-    return Results.Ok(new
+    try
     {
-        Token = token,
-        Email = user.Email
-    });
+        Console.WriteLine($"Attempting company login for email: {loginRequestCompany.Email}");
+        
+        if (string.IsNullOrEmpty(loginRequestCompany.Email) || string.IsNullOrEmpty(loginRequestCompany.Password))
+        {
+            Console.WriteLine("Login attempt failed: Email or password is empty");
+            return Results.BadRequest("Email and password are required");
+        }
+
+        var company = await db.Company.FirstOrDefaultAsync(c => c.Email == loginRequestCompany.Email);
+        
+        if (company == null)
+        {
+            Console.WriteLine("Login attempt failed: Company not found");
+            return Results.NotFound("Company not found");
+        }
+
+        if (company.Password != loginRequestCompany.Password)
+        {
+            Console.WriteLine("Login attempt failed: Invalid password");
+            return Results.Unauthorized();
+        }
+
+        var token = Guid.NewGuid().ToString();
+        Console.WriteLine($"Login successful for company: {company.Company_Name}");
+
+        return Results.Ok(new
+        {
+            Token = token,
+            Email = company.Email,
+            CompanyName = company.Company_Name,
+            NrOfAccounts = company.Nr_of_accounts
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during company authentication: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Authentication Error",
+            detail: "An error occurred during authentication. Please try again.",
+            statusCode: 500
+        );
+    }
 });
 
 ////////////////////////////////////////////////////////////////////
@@ -428,7 +451,307 @@ app.MapPost("/cv-pdf/upload-json", async ([FromBody] CvPdfUploadRequest request,
 .WithName("UploadCvJson")
 .WithOpenApi();
 
-app.Run("http://0.0.0.0:7287");
+////////////////////////////////////////////////////////////////////
+////////////////////////////////TEST////////////////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapGet("/test", async (AppDbContext db) =>
+    await db.Test.ToListAsync());
+
+app.MapGet("/test/{id}", async (AppDbContext db, int id) =>
+    await db.Test.FindAsync(id) is Test test ? Results.Ok(test) : Results.NotFound());
+
+app.MapPost("/test", async (AppDbContext db, [FromBody] Test test) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to save test: {test.test_name} for company: {test.company_name}");
+        
+        // Validate company exists
+        var company = await db.Company.FindAsync(test.company_name);
+        if (company == null)
+        {
+            Console.WriteLine($"Company not found: {test.company_name}");
+            return Results.NotFound($"Company {test.company_name} not found");
+        }
+
+        // Create new test entity
+        var newTest = new Test
+        {
+            test_name = test.test_name,
+            no_of_questions = test.no_of_questions,
+            time_limit = test.time_limit,
+            company_name = test.company_name
+        };
+
+        // Add and save
+        db.Test.Add(newTest);
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Test saved successfully with ID: {newTest.test_id}");
+        return Results.Created($"/test/{newTest.test_id}", newTest);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error saving test: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Saving Test",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.MapPut("/test/{id}", async (AppDbContext db, int id, Test updatedTest) =>
+{
+    var existingTest = await db.Test.FindAsync(id);
+    if (existingTest == null)
+    {
+        return Results.NotFound();
+    }
+
+    existingTest.test_name = updatedTest.test_name;
+    existingTest.no_of_questions = updatedTest.no_of_questions;
+    existingTest.time_limit = updatedTest.time_limit;
+    existingTest.company_name = updatedTest.company_name;
+
+    await db.SaveChangesAsync();
+    return Results.Ok(existingTest);
+});
+
+app.MapDelete("/test/{id}", async (AppDbContext db, int id) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to delete test with ID: {id}");
+        
+        var testToRemove = await db.Test.FindAsync(id);
+        if (testToRemove == null)
+        {
+            Console.WriteLine($"Test not found with ID: {id}");
+            return Results.NotFound();
+        }
+        
+        // First, delete any user-test associations
+        var userTestAssociations = await db.UserTest.Where(ut => ut.Testtest_id == id).ToListAsync();
+        if (userTestAssociations.Any())
+        {
+            Console.WriteLine($"Deleting {userTestAssociations.Count} user-test associations for test ID: {id}");
+            db.UserTest.RemoveRange(userTestAssociations);
+            await db.SaveChangesAsync();
+        }
+        
+        // Next, delete all questions associated with this test
+        var associatedQuestions = await db.Questions.Where(q => q.test_id == id).ToListAsync();
+        if (associatedQuestions.Any())
+        {
+            Console.WriteLine($"Deleting {associatedQuestions.Count} questions for test ID: {id}");
+            db.Questions.RemoveRange(associatedQuestions);
+            await db.SaveChangesAsync();
+        }
+        
+        // Finally, delete the test itself
+        db.Test.Remove(testToRemove);
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Successfully deleted test with ID: {id}");
+        return Results.Ok(testToRemove);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error deleting test {id}: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Deleting Test",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////QUESTIONS////////////////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapGet("/questions", async (AppDbContext db) =>
+    await db.Questions.ToListAsync());
+
+app.MapGet("/questions/{id}", async (AppDbContext db, int id) =>
+    await db.Questions.FindAsync(id) is Questions question ? Results.Ok(question) : Results.NotFound());
+
+app.MapGet("/questions/test/{testId}", async (AppDbContext db, int testId) =>
+    await db.Questions.Where(q => q.test_id == testId).ToListAsync());
+
+app.MapPut("/questions/{id}", async (AppDbContext db, int id, Questions updatedQuestion) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to update question with ID: {id}");
+        
+        var existingQuestion = await db.Questions.FindAsync(id);
+        if (existingQuestion == null)
+        {
+            Console.WriteLine($"Question not found with ID: {id}");
+            return Results.NotFound($"Question with ID {id} not found");
+        }
+
+        // Update all fields
+        existingQuestion.test_id = updatedQuestion.test_id;
+        existingQuestion.question_text = updatedQuestion.question_text;
+        existingQuestion.possible_answer_1 = updatedQuestion.possible_answer_1;
+        existingQuestion.possible_answer_2 = updatedQuestion.possible_answer_2;
+        existingQuestion.possible_answer_3 = updatedQuestion.possible_answer_3;
+        existingQuestion.possible_answer_4 = updatedQuestion.possible_answer_4;
+        existingQuestion.correct_answer = updatedQuestion.correct_answer;
+
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Successfully updated question with ID: {id}");
+        return Results.Ok(existingQuestion);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error updating question {id}: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Updating Question",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.MapPost("/questions", async (AppDbContext db, Questions question) =>
+{
+    db.Questions.Add(question);
+    await db.SaveChangesAsync();
+    return Results.Created($"/questions/{question.question_id}", question);
+});
+
+app.MapDelete("/questions/{id}", async (AppDbContext db, int id) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to delete question with ID: {id}");
+        
+        var questionToDelete = await db.Questions.FindAsync(id);
+        if (questionToDelete == null)
+        {
+            Console.WriteLine($"Question not found with ID: {id}");
+            return Results.NotFound($"Question with ID {id} not found");
+        }
+
+        db.Questions.Remove(questionToDelete);
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Successfully deleted question with ID: {id}");
+        return Results.Ok(questionToDelete);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error deleting question {id}: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Deleting Question",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////USER-TEST////////////////////////////////
+////////////////////////////////////////////////////////////////////
+app.MapPost("/user-test", async (AppDbContext db, UserTest userTest) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to create user-test association: User={userTest.Userid}, Test={userTest.Testtest_id}");
+        
+        // Validate user exists
+        var user = await db.User.FindAsync(userTest.Userid);
+        if (user == null)
+        {
+            Console.WriteLine($"User not found with ID: {userTest.Userid}");
+            return Results.NotFound($"User with ID {userTest.Userid} not found");
+        }
+
+        // Validate test exists
+        var test = await db.Test.FindAsync(userTest.Testtest_id);
+        if (test == null)
+        {
+            Console.WriteLine($"Test not found with ID: {userTest.Testtest_id}");
+            return Results.NotFound($"Test with ID {userTest.Testtest_id} not found");
+        }
+
+        // Check if association already exists
+        var existingAssociation = await db.UserTest
+            .FirstOrDefaultAsync(ut => ut.Userid == userTest.Userid && ut.Testtest_id == userTest.Testtest_id);
+            
+        if (existingAssociation != null)
+        {
+            Console.WriteLine($"Association already exists for User={userTest.Userid}, Test={userTest.Testtest_id}");
+            return Results.Conflict("This user is already assigned to this test");
+        }
+
+        // Create the association
+        db.UserTest.Add(userTest);
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Successfully created user-test association: User={userTest.Userid}, Test={userTest.Testtest_id}");
+        return Results.Created($"/user-test/{userTest.Userid}-{userTest.Testtest_id}", userTest);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error creating user-test association: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Creating User-Test Association",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.MapGet("/user-test/user/{userId}", async (AppDbContext db, int userId) =>
+    await db.UserTest.Where(ut => ut.Userid == userId).ToListAsync());
+
+app.MapGet("/user-test/test/{testId}", async (AppDbContext db, int testId) =>
+    await db.UserTest.Where(ut => ut.Testtest_id == testId).ToListAsync());
+
+app.MapDelete("/user-test/{userId}-{testId}", async (AppDbContext db, int userId, int testId) =>
+{
+    try
+    {
+        Console.WriteLine($"Attempting to delete user-test association: User={userId}, Test={testId}");
+        
+        var association = await db.UserTest
+            .FirstOrDefaultAsync(ut => ut.Userid == userId && ut.Testtest_id == testId);
+            
+        if (association == null)
+        {
+            Console.WriteLine($"User-test association not found for User={userId}, Test={testId}");
+            return Results.NotFound("Association not found");
+        }
+        
+        db.UserTest.Remove(association);
+        await db.SaveChangesAsync();
+        
+        Console.WriteLine($"Successfully deleted user-test association for User={userId}, Test={testId}");
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error deleting user-test association: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        return Results.Problem(
+            title: "Error Deleting User-Test Association",
+            detail: ex.Message,
+            statusCode: 500
+        );
+    }
+});
+
+app.Run();
 
 class AppDbContext : DbContext
 {
@@ -436,6 +759,9 @@ class AppDbContext : DbContext
     public DbSet<User> User { get; set; }
     public DbSet<Company> Company { get; set; }
     public DbSet<CvPdf> CvPdf { get; set; }
+    public DbSet<Test> Test { get; set; }
+    public DbSet<Questions> Questions { get; set; }
+    public DbSet<UserTest> UserTest { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -460,11 +786,37 @@ class AppDbContext : DbContext
             .HasKey(c => c.cv_id);
         modelBuilder.Entity<CvPdf>()
             .ToTable("CV_as_PDF");
-        modelBuilder.Entity<CvPdf>()
+
+        modelBuilder.Entity<Test>()
+            .HasKey(t => t.test_id);
+        modelBuilder.Entity<Test>()
+            .ToTable("Test");
+        modelBuilder.Entity<Test>()
+            .HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(t => t.company_name);
+
+        modelBuilder.Entity<Questions>()
+            .HasKey(q => q.question_id);
+        modelBuilder.Entity<Questions>()
+            .ToTable("Questions");
+        modelBuilder.Entity<Questions>()
+            .HasOne<Test>()
+            .WithMany()
+            .HasForeignKey(q => q.test_id);
+
+        modelBuilder.Entity<UserTest>()
+            .HasKey(ut => new { ut.Userid, ut.Testtest_id });
+        modelBuilder.Entity<UserTest>()
+            .ToTable("User_Test");
+        modelBuilder.Entity<UserTest>()
             .HasOne<User>()
-            .WithOne()
-            .HasForeignKey<CvPdf>(c => c.cv_id)
-            .OnDelete(DeleteBehavior.Cascade);
+            .WithMany()
+            .HasForeignKey(ut => ut.Userid);
+        modelBuilder.Entity<UserTest>()
+            .HasOne<Test>()
+            .WithMany()
+            .HasForeignKey(ut => ut.Testtest_id);
     }
 }
 
@@ -534,4 +886,58 @@ public class CvPdfUploadRequest
 
     [Required]
     public string file_data { get; set; }
+}
+
+public class Test
+{
+    [Key]
+    public int test_id { get; set; }
+    
+    [Required]
+    [Column(TypeName = "varchar(35)")]
+    public string test_name { get; set; }
+    
+    [Required]
+    public int no_of_questions { get; set; }
+    
+    [Required]
+    public int time_limit { get; set; }
+    
+    [Required]
+    [Column(TypeName = "varchar(35)")]
+    public string company_name { get; set; }
+}
+
+public class Questions
+{
+    [Key]
+    public int question_id { get; set; }
+    
+    public int test_id { get; set; }
+    
+    [Required]
+    [Column(TypeName = "varchar(2048)")]
+    public string question_text { get; set; }
+    
+    [Column(TypeName = "varchar(255)")]
+    public string possible_answer_1 { get; set; }
+    
+    [Column(TypeName = "varchar(255)")]
+    public string possible_answer_2 { get; set; }
+    
+    [Column(TypeName = "varchar(255)")]
+    public string possible_answer_3 { get; set; }
+    
+    [Column(TypeName = "varchar(255)")]
+    public string possible_answer_4 { get; set; }
+    
+    [Required]
+    [Column(TypeName = "varchar(255)")]
+    public string correct_answer { get; set; }
+}
+
+public class UserTest
+{
+    public int Userid { get; set; }
+    public int Testtest_id { get; set; }
 }

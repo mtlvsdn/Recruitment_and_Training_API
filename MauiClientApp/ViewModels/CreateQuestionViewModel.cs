@@ -3,14 +3,17 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using MauiClientApp.Models;
 using MauiClientApp.Views.Tests;
+using MauiClientApp.Services;
 
 namespace MauiClientApp.ViewModels
 {
     [QueryProperty(nameof(QuestionNumber), "questionNumber")]
     [QueryProperty(nameof(TotalQuestions), "totalQuestions")]
     [QueryProperty(nameof(Test), "Test")]
+    [QueryProperty(nameof(IsEditMode), "IsEditMode")]
     public class CreateQuestionViewModel : INotifyPropertyChanged, IQueryAttributable
     {
+        private readonly ApiService _apiService;
         private int _questionNumber;
         private int _totalQuestions;
         private Test _test;
@@ -21,22 +24,78 @@ namespace MauiClientApp.ViewModels
         private string _answerD;
         private bool _isNextEnabled;
         private string _correctAnswer;
+        private bool _isEditMode;
+        private int _questionId;
+        private bool _isQuestionLoaded;
+
+        public bool IsQuestionLoaded
+        {
+            get => _isQuestionLoaded;
+            set
+            {
+                if (_isQuestionLoaded != value)
+                {
+                    _isQuestionLoaded = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public int QuestionId
+        {
+            get => _questionId;
+            set
+            {
+                if (_questionId != value)
+                {
+                    _questionId = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set
+            {
+                if (_isEditMode != value)
+                {
+                    _isEditMode = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ActionButtonText));
+                }
+            }
+        }
+
+        public string ActionButtonText => IsEditMode ? "Update" : "Next";
 
         public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
+            Console.WriteLine($"CreateQuestionViewModel: ApplyQueryAttributes called with {query.Count} parameters");
+            
             if (query.ContainsKey("questionNumber") && int.TryParse(query["questionNumber"].ToString(), out int questionNumber))
             {
                 QuestionNumber = questionNumber;
+                Console.WriteLine($"CreateQuestionViewModel: QuestionNumber set to {QuestionNumber}");
             }
             
             if (query.ContainsKey("totalQuestions") && int.TryParse(query["totalQuestions"].ToString(), out int totalQuestions))
             {
                 TotalQuestions = totalQuestions;
+                Console.WriteLine($"CreateQuestionViewModel: TotalQuestions set to {TotalQuestions}");
             }
             
             if (query.ContainsKey("Test"))
             {
                 Test = query["Test"] as Test;
+                Console.WriteLine($"CreateQuestionViewModel: Test set to {Test?.test_name ?? "null"}");
+            }
+
+            if (query.ContainsKey("IsEditMode") && query["IsEditMode"] is bool editMode)
+            {
+                IsEditMode = editMode;
+                Console.WriteLine($"CreateQuestionViewModel: IsEditMode set to {IsEditMode}");
             }
         }
 
@@ -175,6 +234,7 @@ namespace MauiClientApp.ViewModels
                 {
                     _isNextEnabled = value;
                     OnPropertyChanged();
+                    (NextCommand as Command)?.ChangeCanExecute();
                 }
             }
         }
@@ -184,6 +244,7 @@ namespace MauiClientApp.ViewModels
 
         public CreateQuestionViewModel()
         {
+            _apiService = new ApiService();
             NextCommand = new Command(async () => await OnNext(), () => IsNextEnabled);
             BackCommand = new Command(OnBack);
             
@@ -195,113 +256,249 @@ namespace MauiClientApp.ViewModels
             AnswerD = string.Empty;
             CorrectAnswer = string.Empty;
             IsNextEnabled = false;
+            IsQuestionLoaded = false;
         }
 
         private void ValidateInputs()
         {
-            bool isValid = !string.IsNullOrWhiteSpace(QuestionText) &&
-                          !string.IsNullOrWhiteSpace(AnswerA) &&
-                          !string.IsNullOrWhiteSpace(AnswerB) &&
-                          !string.IsNullOrWhiteSpace(AnswerC) &&
-                          !string.IsNullOrWhiteSpace(AnswerD) &&
-                          !string.IsNullOrWhiteSpace(CorrectAnswer) &&
-                          (CorrectAnswer == AnswerA || 
-                           CorrectAnswer == AnswerB || 
-                           CorrectAnswer == AnswerC || 
-                           CorrectAnswer == AnswerD);
-            
-            IsNextEnabled = isValid;
-            ((Command)NextCommand).ChangeCanExecute();
+            // Validate all inputs are provided
+            IsNextEnabled = !string.IsNullOrWhiteSpace(QuestionText) &&
+                            !string.IsNullOrWhiteSpace(AnswerA) &&
+                            !string.IsNullOrWhiteSpace(AnswerB) &&
+                            !string.IsNullOrWhiteSpace(AnswerC) &&
+                            !string.IsNullOrWhiteSpace(AnswerD) &&
+                            !string.IsNullOrWhiteSpace(CorrectAnswer);
         }
 
         private async Task OnNext()
         {
-            if (string.IsNullOrWhiteSpace(QuestionText))
+            try
             {
-                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please enter a question", "OK");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(AnswerA) || string.IsNullOrWhiteSpace(AnswerB) ||
-                string.IsNullOrWhiteSpace(AnswerC) || string.IsNullOrWhiteSpace(AnswerD))
-            {
-                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please fill in all answer options", "OK");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(CorrectAnswer))
-            {
-                await Application.Current.MainPage.DisplayAlert("Validation Error", "Please enter the correct answer", "OK");
-                return;
-            }
-
-            // Check if the correct answer matches one of the possible answers
-            if (CorrectAnswer != AnswerA && CorrectAnswer != AnswerB && 
-                CorrectAnswer != AnswerC && CorrectAnswer != AnswerD)
-            {
-                await Application.Current.MainPage.DisplayAlert("Validation Error", 
-                    "The correct answer must exactly match one of the possible answers (A, B, C, or D)", "OK");
-                return;
-            }
-
-            // Create the question object
-            var question = new Question
-            {
-                QuestionText = QuestionText,
-                PossibleAnswer1 = AnswerA,
-                PossibleAnswer2 = AnswerB,
-                PossibleAnswer3 = AnswerC,
-                PossibleAnswer4 = AnswerD,
-                CorrectAnswer = CorrectAnswer
-            };
-
-            // Add the question to the test
-            Test.Questions.Add(question);
-
-            // If this was the last question, navigate to the test summary
-            if (QuestionNumber >= TotalQuestions)
-            {
-                var summaryPage = new TestSummaryPage();
-                var viewModel = summaryPage.BindingContext as TestSummaryViewModel;
-                if (viewModel != null)
+                if (IsEditMode)
                 {
-                    viewModel.Test = Test;
+                    await UpdateQuestion();
                 }
-                await Application.Current.MainPage.Navigation.PushAsync(summaryPage);
+                else
+                {
+                    await SaveNewQuestion();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Clear the form for the next question
-                QuestionNumber++;
-                QuestionText = string.Empty;
-                AnswerA = string.Empty;
-                AnswerB = string.Empty;
-                AnswerC = string.Empty;
-                AnswerD = string.Empty;
-                CorrectAnswer = string.Empty;
+                Console.WriteLine($"CreateQuestionViewModel: Error in OnNext: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task SaveNewQuestion()
+        {
+            try
+            {
+                // Create question object
+                var question = new Question
+                {
+                    test_id = Test.test_id,
+                    question_text = QuestionText,
+                    possible_answer_1 = AnswerA,
+                    possible_answer_2 = AnswerB,
+                    possible_answer_3 = AnswerC,
+                    possible_answer_4 = AnswerD,
+                    correct_answer = CorrectAnswer
+                };
+
+                // Save to API
+                var result = await _apiService.PostAsync<Question>("questions", question);
+
+                if (result != null)
+                {
+                    // Clear inputs for next question
+                    QuestionText = string.Empty;
+                    AnswerA = string.Empty;
+                    AnswerB = string.Empty;
+                    AnswerC = string.Empty;
+                    AnswerD = string.Empty;
+                    CorrectAnswer = string.Empty;
+
+                    // Check if we've reached the last question
+                    if (QuestionNumber < TotalQuestions)
+                    {
+                        // Navigate to next question by simply incrementing the counter
+                        // since we're staying on the same page
+                        QuestionNumber++;
+                    }
+                    else
+                    {
+                        // All questions completed
+                        await Application.Current.MainPage.DisplayAlert("Success", "All questions created successfully!", "OK");
+                        await GoBackToTestsList();
+                    }
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to save question", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CreateQuestionViewModel: Error saving question: {ex.Message}");
+                Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to save question: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task UpdateQuestion()
+        {
+            try
+            {
+                Console.WriteLine($"CreateQuestionViewModel: Updating question ID: {QuestionId}");
+                
+                // Create question object with the ID of the existing question
+                var updatedQuestion = new Question
+                {
+                    question_id = QuestionId, // Include the existing ID for update
+                    test_id = Test.test_id,
+                    question_text = QuestionText,
+                    possible_answer_1 = AnswerA,
+                    possible_answer_2 = AnswerB,
+                    possible_answer_3 = AnswerC,
+                    possible_answer_4 = AnswerD,
+                    correct_answer = CorrectAnswer
+                };
+
+                Console.WriteLine($"API Request - PUT to questions/{QuestionId}");
+                var result = await _apiService.PutAsync<Question>($"questions/{QuestionId}", updatedQuestion);
+                
+                if (result != null)
+                {
+                    Console.WriteLine($"CreateQuestionViewModel: Question updated successfully with ID: {result.question_id}");
+                    await Application.Current.MainPage.DisplayAlert("Success", "Question updated successfully!", "OK");
+                    
+                    // Check if we've reached the last question
+                    if (QuestionNumber < TotalQuestions)
+                    {
+                        // Navigate to next question - using direct page creation for safety
+                        var parameters = new Dictionary<string, object>
+                        {
+                            { "Test", Test },
+                            { "questionNumber", QuestionNumber + 1 },
+                            { "totalQuestions", TotalQuestions },
+                            { "IsEditMode", true }
+                        };
+
+                        // Clear current question data
+                        QuestionText = string.Empty;
+                        AnswerA = string.Empty;
+                        AnswerB = string.Empty;
+                        AnswerC = string.Empty;
+                        AnswerD = string.Empty;
+                        CorrectAnswer = string.Empty;
+                        QuestionId = 0;
+                        IsQuestionLoaded = false;
+                        
+                        try
+                        {
+                            // Create new page for next question (to avoid issues with reusing the same page)
+                            var page = new MauiClientApp.Views.Tests.CreateQuestionPage();
+                            
+                            // Apply parameters manually
+                            ((IQueryAttributable)page).ApplyQueryAttributes(parameters);
+                            
+                            // Use Application.Current.MainPage.Navigation directly
+                            await Application.Current.MainPage.Navigation.PushAsync(page);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"CreateQuestionViewModel: Navigation error: {ex.Message}");
+                            Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
+                            
+                            // Fallback navigation
+                            await Application.Current.MainPage.DisplayAlert("Warning", 
+                                "Could not navigate to next question. You'll return to the tests list.", "OK");
+                            await GoBackToTestsList();
+                        }
+                    }
+                    else
+                    {
+                        // All questions completed
+                        await Application.Current.MainPage.DisplayAlert("Success", "All questions updated successfully!", "OK");
+                        await GoBackToTestsList();
+                    }
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to update question", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CreateQuestionViewModel: Error updating question: {ex.Message}");
+                Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to update question: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task GoBackToTestsList()
+        {
+            try
+            {
+                // Pop to root of navigation stack to return to tests list
+                if (Application.Current.MainPage.Navigation.NavigationStack.Count > 1)
+                {
+                    await Application.Current.MainPage.Navigation.PopToRootAsync();
+                }
+                else
+                {
+                    // If we're somehow not in a navigation stack with multiple pages
+                    // Just go back to the main page as a fallback
+                    Application.Current.MainPage = new AppShell();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CreateQuestionViewModel: Error in GoBackToTestsList: {ex.Message}");
+                Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
+                
+                // Last resort if all else fails - reset the app shell
+                Application.Current.MainPage = new AppShell();
             }
         }
 
         private async void OnBack()
         {
-            if (QuestionNumber > 1)
+            try
             {
-                // Go back to the previous question
-                int prevQuestionNumber = QuestionNumber - 1;
-                await Shell.Current.GoToAsync($"//CreateQuestionPage?questionNumber={prevQuestionNumber}&totalQuestions={TotalQuestions}",
-                    new Dictionary<string, object>
+                bool shouldGoBack = await Application.Current.MainPage.DisplayAlert(
+                    "Confirm", 
+                    "Are you sure you want to go back? Any unsaved changes will be lost.", 
+                    "Yes", "No");
+                    
+                if (shouldGoBack)
+                {
+                    if (Application.Current.MainPage.Navigation.NavigationStack.Count > 1)
                     {
-                        { "Test", Test }
-                    });
+                        await Application.Current.MainPage.Navigation.PopAsync();
+                    }
+                    else
+                    {
+                        // If we're somehow at the root of the navigation stack,
+                        // just go back to the tests list
+                        await GoBackToTestsList();
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Go back to test creation page
-                await Shell.Current.GoToAsync("//CreateTestPage");
+                Console.WriteLine($"CreateQuestionViewModel: Error in OnBack: {ex.Message}");
+                Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
+                
+                // If navigation fails, try to reset to app shell
+                await Application.Current.MainPage.DisplayAlert("Error", 
+                    "Navigation error. The app will return to the main page.", "OK");
+                Application.Current.MainPage = new AppShell();
             }
         }
 
-        #region INotifyPropertyChanged
+        private INavigation Navigation => Application.Current.MainPage.Navigation;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -309,7 +506,5 @@ namespace MauiClientApp.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        #endregion
     }
 } 

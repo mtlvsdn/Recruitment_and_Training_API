@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             x:Class="MauiClientApp.Views.Tests.AssignUsersPage"
+             Title="Assign Users"
+             BackgroundColor="Black">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+        <!-- Header -->
+        <StackLayout Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+            <Label Text="{Binding TestName}" 
+                   TextColor="White"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"/>
+                   
+            <!-- Test details -->
+            <Frame BackgroundColor="#222" Padding="15" Margin="0,10,0,0">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Questions:" TextColor="LightGray" Margin="0,0,10,5"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding TestQuestions}" TextColor="White" Margin="0,0,0,5"/>
+                    
+                    <Label Grid.Row="1" Grid.Column="0" Text="Time Limit:" TextColor="LightGray" Margin="0,0,10,5"/>
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding TestTimeLimit}" TextColor="White" Margin="0,0,0,5"/>
+                    
+                    <Label Grid.Row="2" Grid.Column="0" Text="Company:" TextColor="LightGray" Margin="0,0,10,0"/>
+                    <Label Grid.Row="2" Grid.Column="1" Text="{Binding TestCompany}" TextColor="White"/>
+                </Grid>
+            </Frame>
+            
+            <Label Text="Select users to assign to this test"
+                   TextColor="LightGray"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,0"/>
+        </StackLayout>
+
+        <!-- Users List -->
+        <RefreshView Grid.Row="1" 
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsLoading}">
+            <Grid>
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                 IsVisible="{Binding IsLoading}"
+                                 Color="#4CAF50" 
+                                 HorizontalOptions="Center" 
+                                 VerticalOptions="Center"
+                                 Scale="1.5"/>
+                                 
+                <CollectionView ItemsSource="{Binding Users}"
+                              SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="10">
+                                <Frame BackgroundColor="#1E1E1E"
+                                       BorderColor="#333333"
+                                       CornerRadius="10"
+                                       HasShadow="True">
+                                    <Grid ColumnDefinitions="*,Auto" Padding="10">
+                                        <StackLayout Grid.Column="0"
+                                                   Spacing="5">
+                                            <Label Text="{Binding User.Full_Name}"
+                                                   TextColor="White"
+                                                   FontSize="18"
+                                                   FontAttributes="Bold"/>
+                                            <Label Text="{Binding User.Email}"
+                                                   TextColor="LightGray"
+                                                   FontSize="14"/>
+                                        </StackLayout>
+                                        <CheckBox Grid.Column="1"
+                                                IsChecked="{Binding IsSelected}"
+                                                Color="#4CAF50"/>
+                                    </Grid>
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <StackLayout HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+                            <Image Source="no_users.png" 
+                                   HeightRequest="100" 
+                                   WidthRequest="100" 
+                                   Opacity="0.5"
+                                   IsVisible="false"/>
+                            <Label Text="No users found"
+                                   TextColor="Gray"
+                                   FontSize="18"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="There are no users for this company"
+                                   TextColor="LightGray"
+                                   FontSize="14"
+                                   HorizontalOptions="Center"/>
+                            <Button Text="Refresh" 
+                                    Command="{Binding RefreshCommand}"
+                                    BackgroundColor="#555"
+                                    TextColor="White"
+                                    WidthRequest="120"
+                                    HeightRequest="40"
+                                    Margin="0,20,0,0"/>
+                        </StackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </Grid>
+        </RefreshView>
+
+        <!-- Save Button -->
+        <Button Grid.Row="2"
+                Text="Save Changes"
+                Command="{Binding SaveCommand}"
+                BackgroundColor="#4CAF50"
+                TextColor="White"
+                HeightRequest="50"
+                CornerRadius="10"
+                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}"
+                Margin="0,20,0,0"/>
+    </Grid>
+</ContentPage> 

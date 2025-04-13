@@ -6,10 +6,6 @@
              Title="{Binding PageTitle}"
              BackgroundColor="Black">
 
-    <ContentPage.BindingContext>
-        <viewmodels:CreateQuestionViewModel />
-    </ContentPage.BindingContext>
-
     <ScrollView>
         <StackLayout Padding="20">
             <!-- Question Frame -->
@@ -110,6 +106,12 @@
                 </StackLayout>
             </Frame>
 
+            <!-- Question Input Fields -->
+            <StackLayout Spacing="15" Padding="15">
+                <!-- Question Text -->
+                <Label Text="Question Text" FontSize="16" FontAttributes="Bold" TextColor="White"/>
+            </StackLayout>
+
             <!-- Navigation Buttons -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
                 <Button Grid.Column="0"
@@ -118,7 +120,7 @@
                         BackgroundColor="Gray"
                         TextColor="White"/>
                 <Button Grid.Column="1"
-                        Text="Next"
+                        Text="{Binding ActionButtonText}"
                         Command="{Binding NextCommand}"
                         BackgroundColor="RoyalBlue"
                         TextColor="White"

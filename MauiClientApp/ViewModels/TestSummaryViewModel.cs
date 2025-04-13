@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using MauiClientApp.Models;
+using MauiClientApp.Services;
 
 namespace MauiClientApp.ViewModels
 {
@@ -33,9 +34,9 @@ namespace MauiClientApp.ViewModels
                         Console.WriteLine("WARNING: Received null Test object, creating a new one");
                         Test = new Test
                         {
-                            TestName = "New Test",
-                            NumberOfQuestions = 0,
-                            TimeLimit = 60,
+                            test_name = "New Test",
+                            no_of_questions = 0,
+                            time_limit = 60,
                             Questions = new ObservableCollection<Question>(),
                             AssignedUsers = new ObservableCollection<User>()
                         };
@@ -53,7 +54,7 @@ namespace MauiClientApp.ViewModels
                             Test.AssignedUsers = new ObservableCollection<User>();
                         }
                         
-                        Console.WriteLine($"Test object details: Name={Test.TestName}, Questions={Test.Questions.Count}");
+                        Console.WriteLine($"Test object details: Name={Test.test_name}, Questions={Test.Questions.Count}");
                     }
                     
                     // Load users when test is set - safely
@@ -135,117 +136,45 @@ namespace MauiClientApp.ViewModels
         public ICommand FinishCommand { get; }
         public ICommand BackCommand { get; }
 
+        private readonly ApiService _apiService;
+
         public TestSummaryViewModel()
         {
+            _apiService = new ApiService();
             FinishCommand = new Command(OnFinish);
             BackCommand = new Command(OnBack);
             Users = new ObservableCollection<UserSelectionItem>();
             IsFinishEnabled = true;
         }
 
-        // Helper method to get diagnostic info
-        private string GetDiagnosticInfo()
-        {
-            var info = new System.Text.StringBuilder();
-            
-            info.AppendLine($"Test is null: {Test == null}");
-            
-            if (Test != null)
-            {
-                info.AppendLine($"Test.TestId: {Test.TestId}");
-                info.AppendLine($"Test.TestName: {Test.TestName}");
-                info.AppendLine($"Test.NumberOfQuestions: {Test.NumberOfQuestions}");
-                info.AppendLine($"Test.TimeLimit: {Test.TimeLimit}");
-                info.AppendLine($"Test.CompanyName: {Test.CompanyName ?? "null"}");
-                info.AppendLine($"Test.Questions is null: {Test.Questions == null}");
-                info.AppendLine($"Test.AssignedUsers is null: {Test.AssignedUsers == null}");
-            }
-            
-            info.AppendLine($"Users is null: {Users == null}");
-            
-            if (Users != null)
-            {
-                info.AppendLine($"Users count: {Users.Count}");
-                info.AppendLine($"Selected users count: {Users.Count(u => u.IsSelected)}");
-            }
-            
-            info.AppendLine($"SessionManager.Instance is null: {MauiClientApp.Services.SessionManager.Instance == null}");
-            
-            if (MauiClientApp.Services.SessionManager.Instance != null)
-            {
-                info.AppendLine($"SessionManager.CompanyName: {MauiClientApp.Services.SessionManager.Instance.CompanyName ?? "null"}");
-            }
-            
-            return info.ToString();
-        }
-
-        public async Task LoadUsersAsync()
+        private async Task LoadUsersAsync()
         {
             try
             {
                 IsLoading = true;
-                Console.WriteLine("Loading users...");
                 
-                // Get the company name from the session manager
-                var companyName = MauiClientApp.Services.SessionManager.Instance.CompanyName;
-                
-                Console.WriteLine($"Company name from session: {companyName}");
-                
-                if (string.IsNullOrEmpty(companyName))
+                // Get all users for the company
+                var companyUsers = await _apiService.GetListAsync<User>("user");
+                var filteredUsers = companyUsers.Where(u => u.Company_Name == Test.company_name).ToList();
+
+                // Get all user-test assignments for this test
+                var assignments = await _apiService.GetListAsync<UserTest>($"user-test/test/{Test.test_id}");
+
+                var userItems = new ObservableCollection<UserSelectionItem>();
+                foreach (var user in filteredUsers)
                 {
-                    Console.WriteLine("No company name found in session");
-                    await Application.Current.MainPage.DisplayAlert("Error", "Company name not found in session", "OK");
-                    return;
-                }
-                
-                // Create an API service instance
-                var apiService = new MauiClientApp.Services.ApiService();
-                
-                // Clear any existing users
-                Users.Clear();
-                
-                // Fetch all users from the API
-                var allUsers = await apiService.GetListAsync<User>("user");
-                
-                if (allUsers != null)
-                {
-                    // Filter users by company name
-                    var companyUsers = allUsers.Where(u => u.Company_Name == companyName).ToList();
-                    
-                    Console.WriteLine($"Found {companyUsers.Count} users for company {companyName}");
-                    
-                    if (companyUsers.Count > 0)
+                    userItems.Add(new UserSelectionItem
                     {
-                        foreach (var user in companyUsers)
-                        {
-                            Console.WriteLine($"Adding user: {user.Full_Name}");
-                            Users.Add(new UserSelectionItem
-                            {
-                                User = user,
-                                IsSelected = false
-                            });
-                        }
-                        
-                        Console.WriteLine($"Users collection now has {Users.Count} items");
-                    }
-                    else
-                    {
-                        Console.WriteLine("No users found for this company");
-                        await Application.Current.MainPage.DisplayAlert("Warning", "No users found for your company", "OK");
-                    }
+                        User = user,
+                        IsSelected = assignments.Any(a => a.Userid == user.Id)
+                    });
                 }
-                else
-                {
-                    Console.WriteLine("Failed to fetch users from API");
-                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to fetch users from the server", "OK");
-                }
+
+                Users = userItems;
             }
             catch (Exception ex)
             {
-                // Handle error
-                Console.WriteLine($"Error in LoadUsersAsync: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                await Shell.Current.DisplayAlert("Error", $"Failed to load users: {ex.Message}", "OK");
+                Console.WriteLine($"Error loading users: {ex.Message}");
             }
             finally
             {
@@ -255,122 +184,60 @@ namespace MauiClientApp.ViewModels
 
         private async void OnFinish()
         {
+            if (Users == null || Test == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Missing test data or users", "OK");
+                return;
+            }
+            
+            if (!Users.Any(u => u.IsSelected))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please select at least one user to take the test.", "OK");
+                return;
+            }
+            
+            IsFinishEnabled = false;
+            
             try
             {
-                // Simple validation
-                if (Users == null || Test == null)
+                // Get current assignments
+                var currentAssignments = await _apiService.GetListAsync<UserTest>($"user-test/test/{Test.test_id}");
+                var selectedUsers = Users.Where(u => u.IsSelected).Select(u => u.User.Id).ToList();
+
+                // Remove assignments that are no longer selected
+                foreach (var assignment in currentAssignments)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Missing test data or users", "OK");
-                    return;
-                }
-                
-                if (!Users.Any(u => u.IsSelected))
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Please select at least one user to take the test.", "OK");
-                    return;
-                }
-                
-                IsFinishEnabled = false;
-                
-                // Get the API service
-                var apiService = new MauiClientApp.Services.ApiService();
-                
-                try
-                {
-                    // Create a properly formatted test object for the API
-                    var apiTest = new 
+                    if (!selectedUsers.Contains(assignment.Userid))
                     {
-                        test_name = Test.TestName ?? "Test",
-                        no_of_questions = Test.NumberOfQuestions,
-                        time_limit = Test.TimeLimit
-                    };
-                    
-                    Console.WriteLine($"Saving test: {System.Text.Json.JsonSerializer.Serialize(apiTest)}");
-                    
-                    // Save the test using the API endpoint
-                    var savedTest = await apiService.PostAsync<dynamic>("test", apiTest);
-                    
-                    if (savedTest != null)
-                    {
-                        int testId = Convert.ToInt32(savedTest.test_id);
-                        Console.WriteLine($"Test saved with ID: {testId}");
-                        
-                        // Save each question
-                        foreach (var question in Test.Questions)
-                        {
-                            try
-                            {
-                                // Create a properly formatted question object for the API
-                                var apiQuestion = new
-                                {
-                                    test_id = testId,
-                                    question_text = question.QuestionText,
-                                    possible_answer_1 = question.PossibleAnswer1,
-                                    possible_answer_2 = question.PossibleAnswer2,
-                                    possible_answer_3 = question.PossibleAnswer3,
-                                    possible_answer_4 = question.PossibleAnswer4,
-                                    correct_answer = question.CorrectAnswer
-                                };
-                                
-                                Console.WriteLine($"Saving question: {apiQuestion.question_text}");
-                                var savedQuestion = await apiService.PostAsync<dynamic>("questions", apiQuestion);
-                                Console.WriteLine("Question saved successfully");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error saving question: {ex.Message}");
-                            }
-                        }
-                        
-                        // Associate test with selected users using User_Test junction table
-                        foreach (var userItem in Users.Where(u => u.IsSelected))
-                        {
-                            try
-                            {
-                                if (userItem?.User != null)
-                                {
-                                    // Create a properly formatted User_Test association
-                                    var userTestAssociation = new
-                                    {
-                                        Userid = userItem.User.Id,
-                                        Testtest_id = testId
-                                    };
-                                    
-                                    Console.WriteLine($"Associating test with user: {userItem.User.Full_Name}");
-                                    var association = await apiService.PostAsync<dynamic>("user-test", userTestAssociation);
-                                    Console.WriteLine("Test associated with user successfully");
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"Error associating test with user: {ex.Message}");
-                            }
-                        }
-                        
-                        await Application.Current.MainPage.DisplayAlert("Success", "Test created successfully and assigned to users!", "OK");
-                        
-                        // Navigate back to company dashboard
-                        await Shell.Current.GoToAsync("//DashboardPage");
-                    }
-                    else
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Failed to save test - no response received", "OK");
+                        await _apiService.DeleteAsync($"user-test/{assignment.Userid}-{assignment.Testtest_id}");
                     }
                 }
-                catch (Exception apiEx)
+
+                // Add new assignments
+                foreach (var userId in selectedUsers)
                 {
-                    Console.WriteLine($"API Error: {apiEx.Message}");
-                    Console.WriteLine($"Stack trace: {apiEx.StackTrace}");
-                    await Application.Current.MainPage.DisplayAlert("API Error", $"Failed to save test: {apiEx.Message}", "OK");
+                    if (!currentAssignments.Any(a => a.Userid == userId))
+                    {
+                        var newAssignment = new UserTest
+                        {
+                            Userid = userId,
+                            Testtest_id = Test.test_id
+                        };
+                        await _apiService.PostAsync<UserTest>("user-test", newAssignment);
+                    }
                 }
-                
-                IsFinishEnabled = true;
+
+                await Application.Current.MainPage.DisplayAlert("Success", "Test assignments updated successfully!", "OK");
+                await Shell.Current.GoToAsync("//DashboardPage");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected error: {ex.Message}");
+                Console.WriteLine($"Error in OnFinish: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                await Application.Current.MainPage.DisplayAlert("Error", $"An unexpected error occurred: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete operation: {ex.Message}", "OK");
+            }
+            finally
+            {
                 IsFinishEnabled = true;
             }
         }
@@ -379,27 +246,7 @@ namespace MauiClientApp.ViewModels
         {
             try
             {
-                // Go back to the last question page using direct navigation
-                var questionPage = new MauiClientApp.Views.Tests.CreateQuestionPage();
-                var viewModel = questionPage.BindingContext as CreateQuestionViewModel;
-                
-                if (viewModel != null && Test != null)
-                {
-                    viewModel.QuestionNumber = Test.NumberOfQuestions;
-                    viewModel.TotalQuestions = Test.NumberOfQuestions;
-                    viewModel.Test = Test;
-                    
-                    await Application.Current.MainPage.Navigation.PushAsync(questionPage);
-                }
-                else
-                {
-                    // Fallback to Shell navigation
-                    await Shell.Current.GoToAsync($"//CreateQuestionPage?questionNumber={Test?.NumberOfQuestions ?? 1}&totalQuestions={Test?.NumberOfQuestions ?? 1}",
-                        new Dictionary<string, object>
-                        {
-                            { "Test", Test }
-                        });
-                }
+                await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
@@ -407,58 +254,11 @@ namespace MauiClientApp.ViewModels
             }
         }
 
-        #region INotifyPropertyChanged
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        #endregion
-    }
-
-    public class UserSelectionItem : INotifyPropertyChanged
-    {
-        private User _user;
-        private bool _isSelected;
-
-        public User User
-        {
-            get => _user;
-            set
-            {
-                if (_user != value)
-                {
-                    _user = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                if (_isSelected != value)
-                {
-                    _isSelected = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion
     }
 } 

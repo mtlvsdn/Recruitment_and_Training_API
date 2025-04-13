@@ -1,6 +1,7 @@
 ﻿using MauiClientApp.Views;
 using MauiClientApp.Views.Company;
 using MauiClientApp.Views.User;
+using MauiClientApp.Views.Tests;
 
 namespace MauiClientApp
 {
@@ -18,6 +19,9 @@ namespace MauiClientApp
             Routing.RegisterRoute("manageusers", typeof(MauiClientApp.Views.Company.ManageUsers));
             Routing.RegisterRoute("createuser", typeof(MauiClientApp.Views.Company.CreateUserPage));
             Routing.RegisterRoute(nameof(TestsPage), typeof(TestsPage));
+            Routing.RegisterRoute("TestSummaryPage", typeof(Views.Tests.TestSummaryPage));
+            Routing.RegisterRoute("AssignUsersPage", typeof(Views.Tests.AssignUsersPage));
+            Routing.RegisterRoute("EditTestPage", typeof(MauiClientApp.Views.Tests.EditTestPage));
         }
     }
 }

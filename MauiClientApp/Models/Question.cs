@@ -2,13 +2,13 @@ namespace MauiClientApp.Models
 {
     public class Question
     {
-        public int QuestionId { get; set; }
-        public int TestId { get; set; }
-        public string QuestionText { get; set; }
-        public string PossibleAnswer1 { get; set; }
-        public string PossibleAnswer2 { get; set; }
-        public string PossibleAnswer3 { get; set; }
-        public string PossibleAnswer4 { get; set; }
-        public string CorrectAnswer { get; set; }
+        public int question_id { get; set; }
+        public int test_id { get; set; }
+        public string question_text { get; set; }
+        public string possible_answer_1 { get; set; }
+        public string possible_answer_2 { get; set; }
+        public string possible_answer_3 { get; set; }
+        public string possible_answer_4 { get; set; }
+        public string correct_answer { get; set; }
     }
 } 
