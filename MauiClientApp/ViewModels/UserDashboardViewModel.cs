@@ -54,10 +54,10 @@ namespace MauiClientApp.ViewModels
             Application.Current.MainPage = new NavigationPage(new StartUpPage());
         }
 
-        private void ViewTests()
+        private async void ViewTests()
         {
             // Navigate to tests page
-            // Example: Application.Current.MainPage.Navigation.PushAsync(new TestsPage());
+            await Application.Current.MainPage.Navigation.PushAsync(new Views.User.UserTestsPage());
         }
 
         private async void UploadCV()

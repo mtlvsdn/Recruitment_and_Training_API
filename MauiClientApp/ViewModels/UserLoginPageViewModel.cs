@@ -87,6 +87,11 @@ namespace MauiClientApp.ViewModels
             {
                 IsLoading = true;
                 ErrorMessage = string.Empty;
+                
+                // Indicate to the user that we're saving credentials
+                Application.Current.MainPage.Dispatcher.Dispatch(() => {
+                    ErrorMessage = "Logging in...";
+                });
 
                 var loginData = new { Email = Email, Password = Password };
                 var response = await _apiService.PostAsync<AuthResponse>("authenticate-user", loginData);
@@ -102,6 +107,9 @@ namespace MauiClientApp.ViewModels
                     {
                         SessionManager.Instance.SetUserDetails(user.Full_Name, user.Company_Name, user.Id);
                     }
+
+                    // Save credentials for persistent login
+                    await SessionManager.Instance.SaveSessionAsync();
 
                     // Navigate to the user dashboard instead of the company dashboard
                     Application.Current.MainPage = new NavigationPage(new UserDashboardPage());

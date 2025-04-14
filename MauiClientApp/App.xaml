@@ -13,6 +13,17 @@
 
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
             <converters:IsNotNullOrEmptyConverter x:Key="IsNotNullOrEmptyConverter" />
+            <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:BoolToFontAttributesConverter x:Key="BoolToFontAttributesConverter" />
+            
+            <!-- Converters for Test Taking -->
+            <converters:IndexToProgressConverter x:Key="IndexToProgressConverter" />
+            <converters:AnswerToColorConverter x:Key="AnswerToColorConverter" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <converters:ScoreToColorConverter x:Key="ScoreToColorConverter" />
+            <converters:AnswerLetterToTextConverter x:Key="AnswerLetterToTextConverter" />
+            <converters:StringNotNullOrEmptyToBoolConverter x:Key="StringNotNullOrEmptyToBoolConverter" />
+            <converters:StringEqualityConverter x:Key="StringEqualityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

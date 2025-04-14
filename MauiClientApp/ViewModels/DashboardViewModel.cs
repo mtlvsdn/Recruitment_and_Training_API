@@ -23,6 +23,7 @@ namespace MauiClientApp.ViewModels
         public ICommand ViewTestsCommand { get; }
         public ICommand ViewAnalyticsCommand { get; }
         public ICommand CompanySettingsCommand { get; }
+        public ICommand ViewCvsCommand { get; }
 
         public DashboardViewModel()
         {
@@ -33,6 +34,7 @@ namespace MauiClientApp.ViewModels
             ViewTestsCommand = new Command(async () => await OnViewTests());
             ViewAnalyticsCommand = new Command(OpenViewAnalytics);
             CompanySettingsCommand = new Command(OpenCompanySettings);
+            ViewCvsCommand = new Command(OpenViewCvs);
             LogoutCommand = new Command(Logout);
         }
 
@@ -72,6 +74,18 @@ namespace MauiClientApp.ViewModels
             catch (Exception ex)
             {
                 await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Failed to navigate to Company Settings: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OpenViewCvs()
+        {
+            try
+            {
+                await Application.Current.MainPage.Navigation.PushAsync(new Views.Company.ViewCvsPage());
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Failed to navigate to View CVs page: {ex.Message}", "OK");
             }
         }
 

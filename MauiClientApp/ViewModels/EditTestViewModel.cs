@@ -35,26 +35,43 @@ namespace MauiClientApp.ViewModels
             set
             {
                 Console.WriteLine($"EditTestViewModel: Test property being set: {(value == null ? "null" : $"ID: {value.test_id}")}");
-                if (_test != value)
+                if (value == null)
                 {
-                    _test = value;
-                    OnPropertyChanged();
-                    
-                    // Always load test data if we have a valid ID, regardless of other properties
-                    if (_test != null && _test.test_id > 0)
-                    {
-                        Console.WriteLine($"EditTestViewModel: Starting LoadTestDataAsync for test ID: {_test.test_id}");
-                        LoadTestDataAsync().ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        Console.WriteLine("EditTestViewModel: Test has invalid ID, not loading data");
-                    }
+                    Console.WriteLine("EditTestViewModel: Null test attempted to be set, ignoring");
+                    return;
                 }
-                else
+
+                if (value.test_id <= 0)
                 {
-                    Console.WriteLine("EditTestViewModel: Test property value unchanged, not triggering reload");
+                    Console.WriteLine($"EditTestViewModel: Test with invalid ID ({value.test_id}) attempted to be set, ignoring");
+                    return;
                 }
+
+                // Set the Test object reference first
+                _test = value;
+                OnPropertyChanged();
+                
+                Console.WriteLine($"EditTestViewModel: Starting LoadTestDataAsync for test ID: {_test.test_id}");
+                MainThread.BeginInvokeOnMainThread(async () => 
+                {
+                    try 
+                    {
+                        await LoadTestDataAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"EditTestViewModel: Error in LoadTestDataAsync: {ex.Message}");
+                        
+                        // Run on UI thread to show error
+                        await MainThread.InvokeOnMainThreadAsync(async () => 
+                        {
+                            await Application.Current.MainPage.DisplayAlert(
+                                "Error", 
+                                $"Failed to load test data: {ex.Message}", 
+                                "OK");
+                        });
+                    }
+                });
             }
         }
 
@@ -131,7 +148,7 @@ namespace MauiClientApp.ViewModels
             try
             {
                 Console.WriteLine($"EditTestViewModel: Setting IsLoading to true");
-                IsLoading = true;
+                await MainThread.InvokeOnMainThreadAsync(() => IsLoading = true);
                 
                 Console.WriteLine($"EditTestViewModel: Calling API to get test data for ID: {Test.test_id}");
                 var testData = await _apiService.GetAsync<Test>($"test/{Test.test_id}");
@@ -162,7 +179,10 @@ namespace MauiClientApp.ViewModels
                     Console.WriteLine("EditTestViewModel: API returned null test data");
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Failed to load test data", "OK");
+                        await Application.Current.MainPage.DisplayAlert(
+                            "Error", 
+                            $"Failed to load test with ID {Test.test_id}. The test may have been deleted.", 
+                            "OK");
                         await SafeNavigateBack();
                     });
                 }
@@ -179,7 +199,7 @@ namespace MauiClientApp.ViewModels
             }
             finally
             {
-                IsLoading = false;
+                await MainThread.InvokeOnMainThreadAsync(() => IsLoading = false);
                 Console.WriteLine("EditTestViewModel: LoadTestDataAsync completed, IsLoading set to false");
             }
         }
@@ -422,9 +442,9 @@ namespace MauiClientApp.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

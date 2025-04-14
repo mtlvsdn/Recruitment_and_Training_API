@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             xmlns:converters="clr-namespace:MauiClientApp.Converters"
+             x:Class="MauiClientApp.Views.Tests.TestTakingPage"
+             Title="Taking Test"
+             BackgroundColor="Black">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:IndexToProgressConverter x:Key="IndexToProgressConverter" />
+            <converters:AnswerToColorConverter x:Key="AnswerToColorConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid Padding="20" RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Header with test name and timer -->
+        <StackLayout Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Label Text="{Binding TestSession.Test.test_name}" 
+                   FontSize="24" 
+                   TextColor="White" 
+                   FontAttributes="Bold"
+                   HorizontalOptions="StartAndExpand" />
+            
+            <Frame BackgroundColor="#333333" 
+                   Padding="10,5" 
+                   CornerRadius="5" 
+                   BorderColor="#555555" 
+                   HorizontalOptions="End">
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="Time Remaining: " 
+                           TextColor="White" 
+                           FontSize="16" 
+                           VerticalOptions="Center" />
+                    <Label Text="{Binding TimerDisplay}" 
+                           TextColor="#FF4500" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           VerticalOptions="Center" />
+                </StackLayout>
+            </Frame>
+        </StackLayout>
+        
+        <!-- Progress indicator -->
+        <StackLayout Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
+            <Label Text="{Binding TestSession.CurrentQuestionIndex, StringFormat='Question {0:D}/'}" 
+                   TextColor="LightGray" 
+                   FontSize="16" 
+                   VerticalOptions="Center" />
+            <Label Text="{Binding TestSession.TotalQuestions}" 
+                   TextColor="LightGray" 
+                   FontSize="16" 
+                   VerticalOptions="Center" />
+            
+            <ProgressBar Progress="{Binding TestSession.CurrentQuestionIndex, Converter={StaticResource IndexToProgressConverter}}" 
+                         ProgressColor="RoyalBlue" 
+                         BackgroundColor="#333333" 
+                         HeightRequest="10" 
+                         WidthRequest="200" 
+                         HorizontalOptions="FillAndExpand" 
+                         Margin="10,0" />
+        </StackLayout>
+        
+        <!-- Loading indicator -->
+        <ActivityIndicator Grid.Row="2" 
+                           IsRunning="{Binding IsLoading}" 
+                           IsVisible="{Binding IsLoading}" 
+                           Color="White" 
+                           VerticalOptions="Center" 
+                           HorizontalOptions="Center" />
+        
+        <!-- Question content -->
+        <ScrollView Grid.Row="2" IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <StackLayout Spacing="20">
+                <!-- Question text -->
+                <Frame BackgroundColor="#333333" 
+                       Padding="20" 
+                       CornerRadius="10" 
+                       BorderColor="#555555">
+                    <Label Text="{Binding CurrentUserAnswer.Question.question_text}" 
+                           TextColor="White" 
+                           FontSize="18" 
+                           LineBreakMode="WordWrap" />
+                </Frame>
+                
+                <!-- Answer options -->
+                <StackLayout Spacing="10">
+                    <Label Text="Select your answer:" 
+                           TextColor="LightGray" 
+                           FontSize="16" 
+                           Margin="0,0,0,5" />
+                    
+                    <!-- Option 1 -->
+                    <Frame BackgroundColor="{Binding CurrentUserAnswer.SelectedAnswer, Converter={StaticResource AnswerToColorConverter}, ConverterParameter='A'}" 
+                           Padding="15" 
+                           CornerRadius="8" 
+                           BorderColor="#555555">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Frame BackgroundColor="#555555" 
+                                   WidthRequest="30" 
+                                   HeightRequest="30" 
+                                   CornerRadius="15" 
+                                   Padding="0" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center">
+                                <Label Text="A" 
+                                       TextColor="White" 
+                                       FontAttributes="Bold" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            
+                            <Label Grid.Column="1" 
+                                   Text="{Binding CurrentUserAnswer.Question.possible_answer_1}" 
+                                   TextColor="White" 
+                                   FontSize="16" 
+                                   Margin="10,0,0,0" 
+                                   VerticalOptions="Center" />
+                            
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectAnswerCommand}" 
+                                                      CommandParameter="A" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                    </Frame>
+                    
+                    <!-- Option 2 -->
+                    <Frame BackgroundColor="{Binding CurrentUserAnswer.SelectedAnswer, Converter={StaticResource AnswerToColorConverter}, ConverterParameter='B'}" 
+                           Padding="15" 
+                           CornerRadius="8" 
+                           BorderColor="#555555">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Frame BackgroundColor="#555555" 
+                                   WidthRequest="30" 
+                                   HeightRequest="30" 
+                                   CornerRadius="15" 
+                                   Padding="0" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center">
+                                <Label Text="B" 
+                                       TextColor="White" 
+                                       FontAttributes="Bold" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            
+                            <Label Grid.Column="1" 
+                                   Text="{Binding CurrentUserAnswer.Question.possible_answer_2}" 
+                                   TextColor="White" 
+                                   FontSize="16" 
+                                   Margin="10,0,0,0" 
+                                   VerticalOptions="Center" />
+                            
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectAnswerCommand}" 
+                                                      CommandParameter="B" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                    </Frame>
+                    
+                    <!-- Option 3 -->
+                    <Frame BackgroundColor="{Binding CurrentUserAnswer.SelectedAnswer, Converter={StaticResource AnswerToColorConverter}, ConverterParameter='C'}" 
+                           Padding="15" 
+                           CornerRadius="8" 
+                           BorderColor="#555555">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Frame BackgroundColor="#555555" 
+                                   WidthRequest="30" 
+                                   HeightRequest="30" 
+                                   CornerRadius="15" 
+                                   Padding="0" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center">
+                                <Label Text="C" 
+                                       TextColor="White" 
+                                       FontAttributes="Bold" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            
+                            <Label Grid.Column="1" 
+                                   Text="{Binding CurrentUserAnswer.Question.possible_answer_3}" 
+                                   TextColor="White" 
+                                   FontSize="16" 
+                                   Margin="10,0,0,0" 
+                                   VerticalOptions="Center" />
+                            
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectAnswerCommand}" 
+                                                      CommandParameter="C" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                    </Frame>
+                    
+                    <!-- Option 4 -->
+                    <Frame BackgroundColor="{Binding CurrentUserAnswer.SelectedAnswer, Converter={StaticResource AnswerToColorConverter}, ConverterParameter='D'}" 
+                           Padding="15" 
+                           CornerRadius="8" 
+                           BorderColor="#555555">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <Frame BackgroundColor="#555555" 
+                                   WidthRequest="30" 
+                                   HeightRequest="30" 
+                                   CornerRadius="15" 
+                                   Padding="0" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center">
+                                <Label Text="D" 
+                                       TextColor="White" 
+                                       FontAttributes="Bold" 
+                                       HorizontalOptions="Center" 
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            
+                            <Label Grid.Column="1" 
+                                   Text="{Binding CurrentUserAnswer.Question.possible_answer_4}" 
+                                   TextColor="White" 
+                                   FontSize="16" 
+                                   Margin="10,0,0,0" 
+                                   VerticalOptions="Center" />
+                            
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding SelectAnswerCommand}" 
+                                                      CommandParameter="D" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                    </Frame>
+                </StackLayout>
+            </StackLayout>
+        </ScrollView>
+        
+        <!-- Navigation buttons -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,*,*" Margin="0,20,0,0">
+            <Button Grid.Column="0" 
+                    Text="Previous" 
+                    Command="{Binding PreviousQuestionCommand}" 
+                    BackgroundColor="#555555" 
+                    TextColor="White" 
+                    CornerRadius="5" 
+                    Margin="0,0,5,0" />
+            
+            <Button Grid.Column="1" 
+                    Text="Submit Test" 
+                    Command="{Binding SubmitTestCommand}" 
+                    BackgroundColor="#4CAF50" 
+                    TextColor="White" 
+                    CornerRadius="5" 
+                    Margin="5,0" />
+            
+            <Button Grid.Column="2" 
+                    Text="Next" 
+                    Command="{Binding NextQuestionCommand}" 
+                    BackgroundColor="#2196F3" 
+                    TextColor="White" 
+                    CornerRadius="5" 
+                    Margin="5,0,0,0" />
+        </Grid>
+    </Grid>
+</ContentPage> 

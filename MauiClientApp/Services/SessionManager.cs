@@ -44,6 +44,53 @@
             UserId = userId;
         }
 
+        public async Task SaveSessionAsync()
+        {
+            if (IsUserLogin)
+            {
+                await SecureStorageService.SaveUserLoginAsync(Email, Token, UserFullName, CompanyName, UserId);
+            }
+            else if (IsCompanyLogin)
+            {
+                await SecureStorageService.SaveCompanyLoginAsync(Email, Token, CompanyName);
+            }
+        }
+
+        public async Task<bool> LoadSessionAsync()
+        {
+            if (!await SecureStorageService.HasSavedLoginAsync())
+                return false;
+
+            var loginType = await SecureStorageService.GetLoginTypeAsync();
+            
+            if (loginType == "user")
+            {
+                var userData = await SecureStorageService.GetUserLoginDataAsync();
+                if (userData == null)
+                    return false;
+                
+                Token = userData["Token"];
+                Email = userData["Email"];
+                UserFullName = userData["FullName"];
+                CompanyName = userData["CompanyName"];
+                UserId = int.Parse(userData["UserId"]);
+                return true;
+            }
+            else if (loginType == "company")
+            {
+                var companyData = await SecureStorageService.GetCompanyLoginDataAsync();
+                if (companyData == null)
+                    return false;
+                
+                Token = companyData["Token"];
+                Email = companyData["Email"];
+                CompanyName = companyData["CompanyName"];
+                return true;
+            }
+            
+            return false;
+        }
+
         public void ClearSession()
         {
             Token = null;
@@ -51,6 +98,9 @@
             CompanyName = null;
             UserFullName = null;
             UserId = 0;
+            
+            // Also clear the secure storage
+            _ = SecureStorageService.ClearLoginDataAsync();
         }
     }
 }

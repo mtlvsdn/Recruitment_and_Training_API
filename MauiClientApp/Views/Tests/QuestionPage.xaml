@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.Tests.QuestionPage"
+             Title="{Binding TestName}"
+             BackgroundColor="Black">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20">
+        <!-- Header with Question Count and Timer -->
+        <StackLayout Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Label Text="{Binding QuestionNumber, StringFormat='Question {0} of'}" 
+                   TextColor="White" 
+                   FontSize="18" 
+                   VerticalOptions="Center"/>
+            <Label Text="{Binding TotalQuestions}" 
+                   TextColor="White" 
+                   FontSize="18" 
+                   VerticalOptions="Center"
+                   Margin="5,0,0,0"/>
+            <Label Text="|" 
+                   TextColor="White" 
+                   FontSize="18" 
+                   VerticalOptions="Center"
+                   Margin="10,0"/>
+            <Label Text="Time Remaining:" 
+                   TextColor="White" 
+                   FontSize="18" 
+                   VerticalOptions="Center"/>
+            <Label Text="{Binding TimeRemaining}" 
+                   TextColor="#FF5555" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   VerticalOptions="Center"
+                   Margin="5,0,0,0"/>
+        </StackLayout>
+        
+        <!-- Question Text -->
+        <Frame Grid.Row="1" 
+               BackgroundColor="#333333" 
+               BorderColor="#555555" 
+               CornerRadius="10" 
+               Padding="15" 
+               Margin="0,10">
+            <Label Text="{Binding CurrentQuestion.question_text}" 
+                   TextColor="White" 
+                   FontSize="18"
+                   LineBreakMode="WordWrap"/>
+        </Frame>
+        
+        <!-- Answer Options -->
+        <ScrollView Grid.Row="2">
+            <StackLayout Spacing="15" Margin="0,10">
+                <!-- Option A -->
+                <Frame BackgroundColor="#444444" 
+                       BorderColor="#666666" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" 
+                               Text="A:" 
+                               TextColor="#33AAFF" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Column="1" 
+                               Text="{Binding CurrentQuestion.possible_answer_1}" 
+                               TextColor="White" 
+                               FontSize="16"
+                               LineBreakMode="WordWrap"/>
+                        <RadioButton Grid.Column="2"
+                                    GroupName="Answers"
+                                    VerticalOptions="Center"
+                                    CheckedChanged="OnAnswerSelected"
+                                    x:Name="RadioA"
+                                    Value="A"/>
+                    </Grid>
+                </Frame>
+                
+                <!-- Option B -->
+                <Frame BackgroundColor="#444444" 
+                       BorderColor="#666666" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" 
+                               Text="B:" 
+                               TextColor="#33AAFF" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Column="1" 
+                               Text="{Binding CurrentQuestion.possible_answer_2}" 
+                               TextColor="White" 
+                               FontSize="16"
+                               LineBreakMode="WordWrap"/>
+                        <RadioButton Grid.Column="2"
+                                    GroupName="Answers"
+                                    VerticalOptions="Center"
+                                    CheckedChanged="OnAnswerSelected"
+                                    x:Name="RadioB"
+                                    Value="B"/>
+                    </Grid>
+                </Frame>
+                
+                <!-- Option C -->
+                <Frame BackgroundColor="#444444" 
+                       BorderColor="#666666" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" 
+                               Text="C:" 
+                               TextColor="#33AAFF" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Column="1" 
+                               Text="{Binding CurrentQuestion.possible_answer_3}" 
+                               TextColor="White" 
+                               FontSize="16"
+                               LineBreakMode="WordWrap"/>
+                        <RadioButton Grid.Column="2"
+                                    GroupName="Answers"
+                                    VerticalOptions="Center"
+                                    CheckedChanged="OnAnswerSelected"
+                                    x:Name="RadioC"
+                                    Value="C"/>
+                    </Grid>
+                </Frame>
+                
+                <!-- Option D -->
+                <Frame BackgroundColor="#444444" 
+                       BorderColor="#666666" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" 
+                               Text="D:" 
+                               TextColor="#33AAFF" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               Margin="0,0,10,0"/>
+                        <Label Grid.Column="1" 
+                               Text="{Binding CurrentQuestion.possible_answer_4}" 
+                               TextColor="White" 
+                               FontSize="16"
+                               LineBreakMode="WordWrap"/>
+                        <RadioButton Grid.Column="2"
+                                    GroupName="Answers"
+                                    VerticalOptions="Center"
+                                    CheckedChanged="OnAnswerSelected"
+                                    x:Name="RadioD"
+                                    Value="D"/>
+                    </Grid>
+                </Frame>
+            </StackLayout>
+        </ScrollView>
+        
+        <!-- Next Button -->
+        <Button Grid.Row="3" 
+                Text="Next" 
+                BackgroundColor="RoyalBlue" 
+                TextColor="White" 
+                FontSize="18" 
+                FontAttributes="Bold" 
+                CornerRadius="10" 
+                Margin="0,15,0,0" 
+                Padding="20,15"
+                IsEnabled="{Binding IsNextEnabled}"
+                Clicked="OnNextClicked"/>
+    </Grid>
+</ContentPage> 

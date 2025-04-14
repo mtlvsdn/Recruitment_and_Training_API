@@ -751,6 +751,136 @@ app.MapDelete("/user-test/{userId}-{testId}", async (AppDbContext db, int userId
     }
 });
 
+////////////////////////////////////////////////////////////////////
+////////////////////////////////TEST RESULTS////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+// Get all test results
+app.MapGet("/test-results", async (AppDbContext db) =>
+{
+    try
+    {
+        var results = await db.Test_Results.ToListAsync();
+        return Results.Ok(results);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error getting test results: {ex.Message}");
+        return Results.Problem("Error retrieving test results");
+    }
+});
+
+// Get test result by ID
+app.MapGet("/test-results/{resultId}", async (AppDbContext db, int resultId) =>
+{
+    try
+    {
+        var result = await db.Test_Results.FindAsync(resultId);
+        return result != null ? Results.Ok(result) : Results.NotFound("Test result not found");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error getting test result {resultId}: {ex.Message}");
+        return Results.Problem($"Error retrieving test result {resultId}");
+    }
+});
+
+// Get test results by test ID
+app.MapGet("/test-results/by-test/{testId}", async (AppDbContext db, int testId) =>
+{
+    try
+    {
+        var results = await db.Test_Results
+            .Where(r => r.Testtest_id == testId)
+            .ToListAsync();
+        return results.Any() ? Results.Ok(results) : Results.NotFound("No test results found for this test");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error getting test results for test {testId}: {ex.Message}");
+        return Results.Problem($"Error retrieving test results for test {testId}");
+    }
+});
+
+// Get test results by user ID
+app.MapGet("/test-results/by-user/{userId}", async (AppDbContext db, int userId) =>
+{
+    try
+    {
+        var results = await db.Test_Results
+            .Where(r => r.Userid == userId)
+            .ToListAsync();
+        return results.Any() ? Results.Ok(results) : Results.NotFound("No test results found for this user");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error getting test results for user {userId}: {ex.Message}");
+        return Results.Problem($"Error retrieving test results for user {userId}");
+    }
+});
+
+// Create new test result
+app.MapPost("/test-results", async (AppDbContext db, [FromBody] Test_Results testResult) =>
+{
+    try
+    {
+        if (testResult == null)
+            return Results.BadRequest("Invalid test result data");
+
+        db.Test_Results.Add(testResult);
+        await db.SaveChangesAsync();
+        return Results.Created($"/test-results/{testResult.result_id}", testResult);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error creating test result: {ex.Message}");
+        return Results.Problem("Error creating test result");
+    }
+});
+
+// Update test result
+app.MapPut("/test-results/{resultId}", async (AppDbContext db, int resultId, [FromBody] Test_Results updatedResult) =>
+{
+    try
+    {
+        var existingResult = await db.Test_Results.FindAsync(resultId);
+        if (existingResult == null)
+            return Results.NotFound("Test result not found");
+
+        existingResult.score = updatedResult.score;
+        existingResult.completion_date = updatedResult.completion_date;
+        existingResult.total_questions = updatedResult.total_questions;
+
+        await db.SaveChangesAsync();
+        return Results.Ok(existingResult);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error updating test result {resultId}: {ex.Message}");
+        return Results.Problem($"Error updating test result {resultId}");
+    }
+});
+
+// Delete test result
+app.MapDelete("/test-results/{resultId}", async (AppDbContext db, int resultId) =>
+{
+    try
+    {
+        var result = await db.Test_Results.FindAsync(resultId);
+        if (result == null)
+            return Results.NotFound("Test result not found");
+
+        db.Test_Results.Remove(result);
+        await db.SaveChangesAsync();
+        return Results.Ok(result);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error deleting test result {resultId}: {ex.Message}");
+        return Results.Problem($"Error deleting test result {resultId}");
+    }
+});
+
 app.Run();
 
 class AppDbContext : DbContext
@@ -762,6 +892,7 @@ class AppDbContext : DbContext
     public DbSet<Test> Test { get; set; }
     public DbSet<Questions> Questions { get; set; }
     public DbSet<UserTest> UserTest { get; set; }
+    public DbSet<Test_Results> Test_Results { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -817,6 +948,19 @@ class AppDbContext : DbContext
             .HasOne<Test>()
             .WithMany()
             .HasForeignKey(ut => ut.Testtest_id);
+
+        modelBuilder.Entity<Test_Results>()
+            .HasKey(tr => tr.result_id);
+        modelBuilder.Entity<Test_Results>()
+            .ToTable("Test_Results");
+        modelBuilder.Entity<Test_Results>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(tr => tr.Userid);
+        modelBuilder.Entity<Test_Results>()
+            .HasOne<Test>()
+            .WithMany()
+            .HasForeignKey(tr => tr.Testtest_id);
     }
 }
 
@@ -940,4 +1084,15 @@ public class UserTest
 {
     public int Userid { get; set; }
     public int Testtest_id { get; set; }
+}
+
+public class Test_Results
+{
+    [Key]
+    public int result_id { get; set; }
+    public int Userid { get; set; }
+    public int Testtest_id { get; set; }
+    public DateTime completion_date { get; set; }
+    public int score { get; set; }
+    public int total_questions { get; set; }
 }

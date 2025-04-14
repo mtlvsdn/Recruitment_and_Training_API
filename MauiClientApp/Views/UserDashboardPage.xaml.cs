@@ -31,5 +31,18 @@ namespace MauiClientApp.Views
             // Refresh data if needed when page appears
             _viewModel.RefreshData();
         }
+        
+        private async void OnLogoutClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert("Confirm Logout", 
+                "Do you want to clear your saved credentials? This will require you to login again next time.", 
+                "Yes", "No");
+                
+            if (confirm)
+            {
+                SessionManager.Instance.ClearSession();
+                Application.Current.MainPage = new NavigationPage(new StartUpPage());
+            }
+        }
     }
 }

@@ -441,16 +441,45 @@ namespace MauiClientApp.ViewModels
         {
             try
             {
-                // Pop to root of navigation stack to return to tests list
-                if (Application.Current.MainPage.Navigation.NavigationStack.Count > 1)
+                Console.WriteLine("CreateQuestionViewModel: Navigating back to tests list");
+                
+                // Find the TestsPage in the navigation stack if it exists
+                var navigationStack = Application.Current.MainPage.Navigation.NavigationStack;
+                var testsPageIndex = navigationStack.ToList().FindIndex(p => p is Views.TestsPage);
+                
+                if (testsPageIndex >= 0)
                 {
-                    await Application.Current.MainPage.Navigation.PopToRootAsync();
+                    // If TestsPage is found in the stack, pop back to it
+                    Console.WriteLine("CreateQuestionViewModel: TestsPage found in navigation stack, popping back to it");
+                    
+                    while (Application.Current.MainPage.Navigation.NavigationStack.Count > testsPageIndex + 1)
+                    {
+                        await Application.Current.MainPage.Navigation.PopAsync();
+                    }
                 }
                 else
                 {
-                    // If we're somehow not in a navigation stack with multiple pages
-                    // Just go back to the main page as a fallback
-                    Application.Current.MainPage = new AppShell();
+                    // If TestsPage is not in the stack, try to navigate to DashboardPage
+                    Console.WriteLine("CreateQuestionViewModel: TestsPage not found, checking for DashboardPage");
+                    var dashboardPageIndex = navigationStack.ToList().FindIndex(p => p is Views.DashboardPage);
+                    
+                    if (dashboardPageIndex >= 0)
+                    {
+                        // Pop back to DashboardPage
+                        Console.WriteLine("CreateQuestionViewModel: DashboardPage found, popping back to it");
+                        
+                        while (Application.Current.MainPage.Navigation.NavigationStack.Count > dashboardPageIndex + 1)
+                        {
+                            await Application.Current.MainPage.Navigation.PopAsync();
+                        }
+                    }
+                    else
+                    {
+                        // If all else fails, push a new TestsPage
+                        Console.WriteLine("CreateQuestionViewModel: No TestsPage or DashboardPage found, pushing new TestsPage");
+                        await Application.Current.MainPage.Navigation.PopToRootAsync();
+                        await Application.Current.MainPage.Navigation.PushAsync(new Views.TestsPage());
+                    }
                 }
             }
             catch (Exception ex)
@@ -458,8 +487,17 @@ namespace MauiClientApp.ViewModels
                 Console.WriteLine($"CreateQuestionViewModel: Error in GoBackToTestsList: {ex.Message}");
                 Console.WriteLine($"CreateQuestionViewModel: Stack trace: {ex.StackTrace}");
                 
-                // Last resort if all else fails - reset the app shell
-                Application.Current.MainPage = new AppShell();
+                // As a last resort, try to push a new TestsPage
+                try
+                {
+                    await Application.Current.MainPage.Navigation.PushAsync(new Views.TestsPage());
+                }
+                catch
+                {
+                    // Absolute last resort - just go to the dashboard without resetting app shell
+                    var navigationPage = new NavigationPage(new Views.DashboardPage());
+                    Application.Current.MainPage = navigationPage;
+                }
             }
         }
 

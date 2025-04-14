@@ -91,23 +91,36 @@ namespace MauiClientApp.ViewModels
                 
                 try
                 {
-                    // Create the page and set the test ID
-                    var page = new MauiClientApp.Views.Tests.EditTestPage();
+                    // Create a valid test ID parameter
+                    string testIdStr = test.test_id.ToString();
+                    Console.WriteLine($"OnEditTest: Test ID parameter: {testIdStr}");
                     
-                    // Make sure the ViewModel is initialized before setting the TestId
-                    await Task.Delay(50); // Brief delay to ensure the page is fully initialized
-                    
-                    // Set the test ID - this will trigger loading the test data
-                    page.TestId = test.test_id.ToString();
-                    Console.WriteLine($"OnEditTest: Set TestId to {test.test_id}, now navigating");
-                    
-                    // Navigate to the page
-                    await Application.Current.MainPage.Navigation.PushAsync(page);
-                    Console.WriteLine("OnEditTest: Navigation completed successfully");
+                    // Create navigation parameters
+                    var navigationParameter = new Dictionary<string, object>
+                    {
+                        { "TestId", testIdStr }
+                    };
+
+                    // Try direct creation of the page first if GoToAsync fails
+                    try
+                    {
+                        // Use ShellNavigationManager to navigate with parameters
+                        await Shell.Current.GoToAsync("EditTestPage", navigationParameter);
+                        Console.WriteLine("OnEditTest: Navigation completed successfully via Shell.GoToAsync");
+                    }
+                    catch (Exception shellEx)
+                    {
+                        // If Shell navigation fails, try direct page creation
+                        Console.WriteLine($"OnEditTest: Shell navigation failed: {shellEx.Message}, trying direct page creation");
+                        var page = new MauiClientApp.Views.Tests.EditTestPage();
+                        ((IQueryAttributable)page).ApplyQueryAttributes(navigationParameter);
+                        await Application.Current.MainPage.Navigation.PushAsync(page);
+                        Console.WriteLine("OnEditTest: Navigation completed successfully via direct page creation");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"OnEditTest: Inner exception during page creation/navigation: {ex.Message}");
+                    Console.WriteLine($"OnEditTest: Inner exception during navigation: {ex.Message}");
                     Console.WriteLine($"OnEditTest: Inner StackTrace: {ex.StackTrace}");
                     throw; // Re-throw to be caught by the outer try-catch
                 }
@@ -236,24 +249,32 @@ namespace MauiClientApp.ViewModels
                     return;
                 }
 
-                Console.WriteLine($"Loading tests for company: {companyName}");
+                Console.WriteLine($"LoadTestsAsync: Loading tests for company: {companyName}");
 
                 // Clear existing tests
                 Tests.Clear();
+                Console.WriteLine("LoadTestsAsync: Cleared existing tests collection");
 
                 // Get all tests
                 var allTests = await _apiService.GetListAsync<Test>("test");
+                Console.WriteLine($"LoadTestsAsync: Retrieved {allTests?.Count ?? 0} tests from API");
 
                 if (allTests != null)
                 {
-                    // Filter tests by company name
-                    var companyTests = allTests.Where(t => t.company_name == companyName).ToList();
+                    // Filter tests by company name and make sure we have unique test_ids
+                    var companyTests = allTests
+                        .Where(t => t.company_name == companyName)
+                        .GroupBy(t => t.test_id) // Group by test_id to eliminate duplicates
+                        .Select(g => g.First())  // Take the first test from each group
+                        .ToList();
+
+                    Console.WriteLine($"LoadTestsAsync: Filtered to {companyTests.Count} unique tests for company {companyName}");
 
                     if (companyTests.Any())
                     {
                         foreach (var test in companyTests)
                         {
-                            Console.WriteLine($"Adding test: {test.test_name} (ID: {test.test_id})");
+                            Console.WriteLine($"LoadTestsAsync: Adding test: {test.test_name} (ID: {test.test_id})");
                             Tests.Add(test);
                         }
                         HasTests = true;
@@ -261,22 +282,22 @@ namespace MauiClientApp.ViewModels
                     }
                     else
                     {
-                        Console.WriteLine("No tests found for company");
+                        Console.WriteLine("LoadTestsAsync: No tests found for company");
                         HasTests = false;
                         ShowNoTestsMessage = true;
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Failed to retrieve tests from API");
+                    Console.WriteLine("LoadTestsAsync: Failed to retrieve tests from API");
                     HasTests = false;
                     ShowNoTestsMessage = true;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading tests: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine($"LoadTestsAsync: Error loading tests: {ex.Message}");
+                Console.WriteLine($"LoadTestsAsync: Stack trace: {ex.StackTrace}");
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load tests: {ex.Message}", "OK");
                 HasTests = false;
                 ShowNoTestsMessage = true;

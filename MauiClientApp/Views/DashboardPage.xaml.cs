@@ -8,16 +8,24 @@ public partial class DashboardPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly SessionManager _sessionManager;
+    private DashboardViewModel _viewModel;
 
     public DashboardPage()
     {
         InitializeComponent();
-        BindingContext = new DashboardViewModel();
+        _viewModel = new DashboardViewModel();
+        BindingContext = _viewModel;
         _apiService = new ApiService();
         _sessionManager = SessionManager.Instance;
 
         // Initialize company information
         InitializeCompanyInfo();
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        // No auto-login popup needed
     }
 
     private async void InitializeCompanyInfo()
@@ -44,6 +52,19 @@ public partial class DashboardPage : ContentPage
             // Set default values if there's an error
             EmailLabel.Text = "Error loading email";
             AccountsLabel.Text = "0";
+        }
+    }
+
+    private async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Confirm Logout", 
+            "Do you want to clear your saved credentials? This will require you to login again next time.", 
+            "Yes", "No");
+            
+        if (confirm)
+        {
+            SessionManager.Instance.ClearSession();
+            Application.Current.MainPage = new NavigationPage(new StartUpPage());
         }
     }
 }

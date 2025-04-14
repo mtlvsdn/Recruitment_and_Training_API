@@ -22,6 +22,15 @@ namespace MauiClientApp
             Routing.RegisterRoute("TestSummaryPage", typeof(Views.Tests.TestSummaryPage));
             Routing.RegisterRoute("AssignUsersPage", typeof(Views.Tests.AssignUsersPage));
             Routing.RegisterRoute("EditTestPage", typeof(MauiClientApp.Views.Tests.EditTestPage));
+            
+            // Register the test-taking pages
+            Routing.RegisterRoute("TestTakingPage", typeof(Views.Tests.TestTakingPage));
+            Routing.RegisterRoute("/TestTakingPage", typeof(Views.Tests.TestTakingPage));
+            Routing.RegisterRoute("TestResultsPage", typeof(Views.Tests.TestResultsPage));
+            Routing.RegisterRoute("/TestResultsPage", typeof(Views.Tests.TestResultsPage));
+            
+            // Register CV viewing pages
+            Routing.RegisterRoute("ViewCvsPage", typeof(Views.Company.ViewCvsPage));
         }
     }
 }

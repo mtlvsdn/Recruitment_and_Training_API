@@ -2,14 +2,14 @@ using MauiClientApp.ViewModels;
 
 namespace MauiClientApp.Views.Company
 {
-    public partial class ViewAnalyticsPage : ContentPage
+    public partial class ViewCvsPage : ContentPage
     {
-        private TestAnalyticsViewModel _viewModel;
+        private ViewCvsViewModel _viewModel;
         
-        public ViewAnalyticsPage()
+        public ViewCvsPage()
         {
             InitializeComponent();
-            _viewModel = new TestAnalyticsViewModel();
+            _viewModel = new ViewCvsViewModel();
             BindingContext = _viewModel;
         }
         
@@ -17,8 +17,8 @@ namespace MauiClientApp.Views.Company
         {
             base.OnAppearing();
             
-            // Load tests when the page appears
-            _viewModel.LoadTestsCommand.Execute(null);
+            // Load users when the page appears
+            _viewModel.LoadUsersCommand.Execute(null);
         }
     }
 } 

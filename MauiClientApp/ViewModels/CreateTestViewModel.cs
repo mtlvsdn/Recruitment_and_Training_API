@@ -2,15 +2,31 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using MauiClientApp.Models;
+using MauiClientApp.Services;
 
 namespace MauiClientApp.ViewModels
 {
     public class CreateTestViewModel : INotifyPropertyChanged
     {
+        private readonly ApiService _apiService;
         private string _testTitle;
         private string _numberOfQuestions;
         private string _timeLimit;
         private bool _isNextEnabled;
+        private bool _isSaving;
+
+        public bool IsSaving
+        {
+            get => _isSaving;
+            set
+            {
+                if (_isSaving != value)
+                {
+                    _isSaving = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public string TestTitle
         {
@@ -72,14 +88,16 @@ namespace MauiClientApp.ViewModels
 
         public CreateTestViewModel()
         {
+            _apiService = new ApiService();
             BackCommand = new Command(async () => await OnBack());
-            NextCommand = new Command(OnNext, () => IsNextEnabled);
+            NextCommand = new Command(async () => await OnNext(), () => IsNextEnabled && !IsSaving);
             
             // Initialize with empty values
             TestTitle = string.Empty;
             NumberOfQuestions = string.Empty;
             TimeLimit = string.Empty;
             IsNextEnabled = false;
+            IsSaving = false;
         }
 
         private void ValidateInputs()
@@ -97,19 +115,50 @@ namespace MauiClientApp.ViewModels
             ((Command)NextCommand).ChangeCanExecute();
         }
 
-        private async void OnNext()
+        private async Task OnNext()
         {
+            if (IsSaving)
+                return;
+
             try
             {
+                IsSaving = true;
+                ((Command)NextCommand).ChangeCanExecute();
+
                 int questions = int.Parse(NumberOfQuestions);
                 int timeInMinutes = int.Parse(TimeLimit);
                 
+                // Create test model to save to database
+                var testToSave = new Test
+                {
+                    test_name = TestTitle,
+                    no_of_questions = questions,
+                    time_limit = timeInMinutes,
+                    company_name = MauiClientApp.Services.SessionManager.Instance?.CompanyName
+                };
+                
+                // Save the test to the database first
+                Console.WriteLine($"Saving test to database: {testToSave.test_name}");
+                var savedTest = await _apiService.PostAsync<Test>("test", testToSave);
+                
+                if (savedTest == null || savedTest.test_id <= 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", 
+                        "Failed to save the test. Please try again.", 
+                        "OK");
+                    return;
+                }
+                
+                Console.WriteLine($"Test saved successfully with ID: {savedTest.test_id}");
+                
+                // Now create the full test object for the UI with the ID from the server
                 Test newTest = new Test
                 {
-                    TestName = TestTitle,
-                    NumberOfQuestions = questions,
-                    TimeLimit = timeInMinutes,
-                    CompanyName = MauiClientApp.Services.SessionManager.Instance?.CompanyName
+                    test_id = savedTest.test_id,
+                    TestName = savedTest.test_name,
+                    NumberOfQuestions = savedTest.no_of_questions,
+                    TimeLimit = savedTest.time_limit,
+                    CompanyName = savedTest.company_name
                 };
                 
                 // Initialize collections
@@ -141,7 +190,14 @@ namespace MauiClientApp.ViewModels
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", $"An error occurred: {ex.Message}", "OK");
+                Console.WriteLine($"CreateTestViewModel: Error in OnNext: {ex.Message}");
+                Console.WriteLine($"CreateTestViewModel: Stack trace: {ex.StackTrace}");
+            }
+            finally
+            {
+                IsSaving = false;
+                ((Command)NextCommand).ChangeCanExecute();
             }
         }
 
