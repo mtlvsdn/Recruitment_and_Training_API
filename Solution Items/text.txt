@@ -1,0 +1,30 @@
+System Architecture Overview
+
+Our recruitment and training system implements a modern three-tier architecture that efficiently connects multiple client applications with a centralized server and database. This document outlines the key components and their interactions within our system.
+
+Client Applications
+------------------
+Our system serves two distinct client applications, each tailored to specific user needs. The UserApp caters to candidates and general users of the recruitment system, providing interfaces for profile management, job applications, and training access. The DeveloperApp, on the other hand, serves the technical team and recruiters, offering advanced features for managing the recruitment process and system administration.
+
+Central API Server
+----------------
+At the heart of our system lies the Recruitment_and_Training_API, a robust server application that acts as the central nervous system of our platform. This API serves as an intelligent intermediary, processing requests from both client applications and managing all interactions with the database. It implements crucial business logic, handles authentication and authorization, and ensures data validation and security across all operations.
+
+The API's design follows RESTful principles, providing a consistent and intuitive interface for client applications. This standardization simplifies development and maintenance while ensuring reliable communication between system components. All client-server interactions occur through secure HTTP protocols, with the API managing session states and enforcing access controls.
+
+Database Layer
+-------------
+The database tier forms the foundation of our system's data persistence strategy. This layer is exclusively accessible through the Recruitment_and_Training_API, which implements a secure gateway pattern to prevent unauthorized direct access to the data store. The database maintains all system information, from user profiles and application data to recruitment processes and training materials.
+
+The bi-directional communication between the API and database enables both read and write operations, with the API implementing necessary data validation and transformation logic. This architecture ensures data integrity while providing the flexibility to scale and modify the database structure without impacting client applications.
+
+System Benefits
+--------------
+This architectural approach offers several key advantages:
+- Enhanced security through centralized access control and data validation
+- Improved maintainability with clear separation of concerns
+- Scalability options for each system component
+- Consistent data handling across different client applications
+- Simplified implementation of cross-cutting concerns like logging and monitoring
+
+The system's design supports future growth and adaptation, allowing for the addition of new features and client applications while maintaining a stable and secure foundation for our recruitment and training operations. 

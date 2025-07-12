@@ -1,4 +1,4 @@
-﻿namespace MauiClient
+﻿namespace DeveloperApp
 {
     public partial class MainPage : ContentPage
     {

@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
+using DeveloperApp;
 
-namespace MauiClient;
+namespace DeveloperApp;
 
 public partial class EditCompanyPage : ContentPage
 {

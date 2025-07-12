@@ -1,6 +1,6 @@
-using MauiClient.ViewModels;
+using DeveloperApp.ViewModels;
 
-namespace MauiClient
+namespace DeveloperApp
 {
     public partial class LoginPage : ContentPage
     {

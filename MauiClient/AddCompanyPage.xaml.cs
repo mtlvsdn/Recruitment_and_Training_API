@@ -1,4 +1,6 @@
-namespace MauiClient
+using DeveloperApp.ViewModels;
+
+namespace DeveloperApp
 {
     public partial class AddCompanyPage : ContentPage
     {

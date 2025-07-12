@@ -1,0 +1,108 @@
+Key Code Snippets and Their Locations
+
+1. Authentication Implementation
+File: Program.cs (Lines 210-260)
+The authentication system is implemented with three distinct endpoints:
+- /authenticate for SuperUsers
+- /authenticate-user for regular users
+- /authenticate-company for company HR members
+Each endpoint uses a stateless token-based approach with GUID generation for session management.
+
+2. CV Processing and Gemini AI Integration
+File: MauiClientApp/Services/GeminiAIService.cs (Lines 167-211)
+The Gemini AI integration shows the sophisticated prompt construction and API interaction:
+```csharp
+var prompt = $@"
+Analyze the following CV/resume text and extract two categories of skills:
+1. Soft skills (communication, leadership, teamwork, etc.)
+2. Hard skills (technical skills, programming languages, tools, software, certifications, etc.)
+...
+```
+
+3. PDF Text Extraction
+File: MauiClientApp/Services/PdfTextExtractionService.cs (Lines 1-180)
+The service implements multiple approaches to text extraction:
+- Backend API-based extraction
+- Local fallback extraction using regex pattern matching
+- Comprehensive error handling and logging
+
+4. Test Management System
+File: Program.cs (Lines 467-578)
+The cascading delete algorithm implementation shows careful handling of related records:
+```csharp
+app.MapDelete("/test/{id}", async (AppDbContext db, int id) =>
+{
+    try
+    {
+        // First, delete user-test associations
+        var userTestAssociations = await db.UserTest
+            .Where(ut => ut.Testtest_id == id)
+            .ToListAsync();
+        if (userTestAssociations.Any())
+        {
+            db.UserTest.RemoveRange(userTestAssociations);
+        }
+        
+        // Next, delete associated questions
+        var associatedQuestions = await db.Questions
+            .Where(q => q.test_id == id)
+            .ToListAsync();
+        if (associatedQuestions.Any())
+        {
+            db.Questions.RemoveRange(associatedQuestions);
+        }
+        
+        // Finally, delete the test itself
+        var testToRemove = await db.Test.FindAsync(id);
+        db.Test.Remove(testToRemove);
+        await db.SaveChangesAsync();
+    }
+    // ... error handling
+});
+```
+
+5. Session Management
+File: MauiClientApp/Services/SessionManager.cs (Lines 1-107)
+Implements secure session handling with different types of authentication:
+```csharp
+public async Task<bool> LoadSessionAsync()
+{
+    if (!await SecureStorageService.HasSavedLoginAsync())
+        return false;
+
+    var loginType = await SecureStorageService.GetLoginTypeAsync();
+    
+    if (loginType == "user")
+    {
+        var userData = await SecureStorageService.GetUserLoginDataAsync();
+        // ... user session handling
+    }
+    else if (loginType == "company")
+    {
+        var companyData = await SecureStorageService.GetCompanyLoginDataAsync();
+        // ... company session handling
+    }
+}
+```
+
+6. Database Models
+File: Program.cs (Lines 1356-1444)
+Shows the Entity Framework Core models with proper annotations:
+```csharp
+public class CvPdf
+{
+    [Key]
+    public int cv_id { get; set; }
+
+    [Column(TypeName = "nvarchar(max)")]
+    public string file_name { get; set; }
+
+    [Column(TypeName = "bigint")]
+    public long file_size { get; set; }
+
+    [Column(TypeName = "varbinary(max)")]
+    public byte[] file_data { get; set; }
+}
+```
+
+These code snippets showcase the key algorithms and patterns used throughout the system, demonstrating the sophisticated implementation of authentication, CV processing, test management, and data handling. 

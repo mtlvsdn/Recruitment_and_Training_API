@@ -65,10 +65,10 @@ namespace MauiClientApp.ViewModels
             await Application.Current.MainPage.Navigation.PushAsync(new UserCvPage());
         }
 
-        private void ViewSkills()
+        private async void ViewSkills()
         {
             // Navigate to skills page
-            // Example: Application.Current.MainPage.Navigation.PushAsync(new SkillsPage());
+            await Application.Current.MainPage.Navigation.PushAsync(new Views.User.ViewSkillsPage());
         }
 
         private async void EditProfile()

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MauiClient
+namespace DeveloperApp
 {
     public class CompanyModel
     {

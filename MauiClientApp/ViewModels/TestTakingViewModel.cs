@@ -457,28 +457,16 @@ namespace MauiClientApp.ViewModels
                 // Calculate the score
                 TestSession.CorrectAnswers = TestSession.UserAnswers.Count(a => a.IsCorrect);
                 
-                // Create the test result object that exactly matches the API model
-                var testResult = new Test_Results
-                {
-                    Userid = _sessionManager.UserId,
-                    Testtest_id = TestSession.Test.test_id,
-                    completion_date = TestSession.EndTime,
-                    score = TestSession.CorrectAnswers,
-                    total_questions = TestSession.TotalQuestions
-                };
-                
-                // Send the results to the API
-                var response = await _apiService.PostAsync<Test_Results>("test-results", testResult);
-                
-                if (response == null)
-                {
-                    throw new Exception("No response received from the API");
-                }
-                
-                Console.WriteLine($"TestTakingViewModel: Test submitted - Score: {TestSession.CorrectAnswers}/{TestSession.TotalQuestions}");
-                Console.WriteLine($"TestTakingViewModel: Result saved with ID: {response.result_id}");
+                // Log test completion details
+                Console.WriteLine($"Test completed - User: {_sessionManager.UserId}, Test: {TestSession.Test.test_id}");
+                Console.WriteLine($"Score: {TestSession.CorrectAnswers}/{TestSession.TotalQuestions}");
+                Console.WriteLine($"Time taken: {TestSession.EndTime - TestSession.StartTime}");
+
+                // Note: We'll let TestResultsViewModel handle saving the results
+                // to prevent duplicate saves
                 
                 StatusMessage = "Test completed successfully!";
+                Console.WriteLine("Test submission completed successfully");
             }
             catch (Exception ex)
             {
@@ -488,9 +476,15 @@ namespace MauiClientApp.ViewModels
                 
                 if (Application.Current?.MainPage != null)
                 {
+                    string errorDetails = $"Failed to submit test.\n\nError: {ex.Message}";
+                    if (ex.InnerException != null)
+                    {
+                        errorDetails += $"\n\nAdditional details: {ex.InnerException.Message}";
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert(
                         "Error",
-                        "Failed to save test results. Please try again or contact support.",
+                        errorDetails,
                         "OK");
                 }
             }

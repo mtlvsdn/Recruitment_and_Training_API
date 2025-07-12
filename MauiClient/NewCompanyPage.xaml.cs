@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 
-namespace MauiClient
+namespace DeveloperApp
 {
     public partial class NewCompanyPage : ContentPage
     {

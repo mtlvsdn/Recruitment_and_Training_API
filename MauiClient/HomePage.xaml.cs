@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Newtonsoft.Json;
 
-namespace MauiClient
+namespace DeveloperApp
 {
     public partial class HomePage : ContentPage
     {

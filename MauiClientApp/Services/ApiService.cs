@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using MauiClientApp.Models;
 
 namespace MauiClientApp.Services
 {
@@ -16,9 +17,6 @@ namespace MauiClientApp.Services
 
         public ApiService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.Timeout = TimeSpan.FromSeconds(60);
-            
             // Configure SSL/TLS
 #if DEBUG
             var handler = new HttpClientHandler
@@ -29,7 +27,18 @@ namespace MauiClientApp.Services
 #else
             _httpClient = new HttpClient();
 #endif
+            _httpClient.Timeout = TimeSpan.FromSeconds(60);
 
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+        }
+
+        public ApiService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -486,6 +495,42 @@ namespace MauiClientApp.Services
                 Console.WriteLine($"ApiService: Error in DeleteAsync for {endpoint}: {ex.Message}");
                 Console.WriteLine($"ApiService: Stack trace: {ex.StackTrace}");
                 throw;
+            }
+        }
+        
+        // Gets CV skills information for a specific CV
+        public async Task<CvSummarised> GetCvSkills(int cvId)
+        {
+            try
+            {
+                Console.WriteLine($"ApiService: Retrieving CV skills for CV ID {cvId}");
+                
+                // Use the by-user endpoint instead of trying to get all CV summaries
+                // This cv_id is actually the user_id in this case
+                return await GetAsync<CvSummarised>($"cv-summarised/by-user/{cvId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ApiService: Error retrieving CV skills for CV ID {cvId}: {ex.Message}");
+                Console.WriteLine($"ApiService: Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+        
+        // Gets the CV for a specific user
+        public async Task<CvPdf> GetUserCv(int userId)
+        {
+            try
+            {
+                Console.WriteLine($"ApiService: Retrieving CV for user ID {userId}");
+                
+                return await GetAsync<CvPdf>($"cv-pdf/{userId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ApiService: Error retrieving CV for user ID {userId}: {ex.Message}");
+                Console.WriteLine($"ApiService: Stack trace: {ex.StackTrace}");
+                return null;
             }
         }
     }

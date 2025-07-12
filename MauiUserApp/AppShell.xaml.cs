@@ -1,6 +1,6 @@
-﻿using MauiUserApp.Views;
+﻿using UserApp.Views;
 
-namespace MauiUserApp
+namespace UserApp
 {
     public partial class AppShell : Shell
     {

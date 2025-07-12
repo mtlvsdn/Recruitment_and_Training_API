@@ -131,6 +131,12 @@ namespace MauiClientApp.ViewModels
             {
                 IsLoading = true;
 
+                // Check if test session is valid
+                if (TestSession == null || TestSession.Test == null)
+                {
+                    throw new InvalidOperationException("Test session or test data is missing");
+                }
+
                 // Create test result object that exactly matches the database schema
                 var testResult = new Test_Results
                 {
@@ -140,6 +146,8 @@ namespace MauiClientApp.ViewModels
                     score = TestSession.CorrectAnswers,
                     total_questions = TestSession.TotalQuestions
                 };
+
+                Console.WriteLine($"Attempting to save test results - User: {testResult.Userid}, Test: {testResult.Testtest_id}, Score: {testResult.score}/{testResult.total_questions}");
 
                 // Save the test result to the database
                 var response = await _apiService.PostAsync<Test_Results>("test-results", testResult);
@@ -155,11 +163,19 @@ namespace MauiClientApp.ViewModels
             {
                 Console.WriteLine($"Error saving test results: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Show a more detailed error message to help with troubleshooting
                 if (Application.Current?.MainPage != null)
                 {
+                    string errorDetails = $"Failed to save test results.\n\nError: {ex.Message}";
+                    if (ex.InnerException != null)
+                    {
+                        errorDetails += $"\n\nAdditional details: {ex.InnerException.Message}";
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert(
                         "Error", 
-                        "Failed to save test results. Please try again or contact support.",
+                        errorDetails,
                         "OK");
                 }
             }
@@ -173,13 +189,13 @@ namespace MauiClientApp.ViewModels
         {
             try
             {
-                // Navigate to the user dashboard
-                await Shell.Current.GoToAsync("///user/dashboard");
+                // Navigate to the user dashboard using the navigation stack
+                await Application.Current.MainPage.Navigation.PushAsync(new Views.UserDashboardPage());
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error navigating to dashboard: {ex.Message}");
-                // Fallback navigation
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 if (Application.Current?.MainPage != null)
                 {
                     await Application.Current.MainPage.DisplayAlert("Error", "Failed to navigate to dashboard", "OK");

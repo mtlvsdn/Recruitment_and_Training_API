@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MauiClientApp.ViewModels"
+             x:Class="MauiClientApp.Views.User.ViewSkillsPage"
+             BackgroundColor="Black"
+             Title="My Skills">
+    
+    <ContentPage.BindingContext>
+        <viewmodels:ViewSkillsViewModel />
+    </ContentPage.BindingContext>
+    
+    <ScrollView>
+        <Grid Padding="20" RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Label Grid.Row="0" 
+                   Text="My Skills Profile" 
+                   TextColor="White"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,20"/>
+
+            <!-- Hard Skills Section -->
+            <Label Grid.Row="1" 
+                   Text="Hard Skills" 
+                   TextColor="White"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   Margin="0,10,0,5"/>
+
+            <Frame Grid.Row="2" 
+                   BackgroundColor="#333333" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   IsVisible="{Binding HasSkills}">
+                <FlexLayout 
+                    Direction="Row"
+                    Wrap="Wrap"
+                    JustifyContent="Start"
+                    AlignItems="Center"
+                    AlignContent="Start"
+                    BindableLayout.ItemsSource="{Binding HardSkills}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#0066cc"
+                                   CornerRadius="20"
+                                   Padding="10,5"
+                                   Margin="5">
+                                <Label Text="{Binding .}"
+                                       TextColor="White"
+                                       FontSize="14"/>
+                            </Frame>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+            </Frame>
+
+            <!-- Message when no hard skills are available -->
+            <Label Grid.Row="2" 
+                   Text="No hard skills available. Upload your CV to extract skills." 
+                   TextColor="Gray"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasSkills, Converter={StaticResource InvertedBoolConverter}}"
+                   Margin="0,10,0,10"/>
+
+            <!-- Soft Skills Section -->
+            <Label Grid.Row="3" 
+                   Text="Soft Skills" 
+                   TextColor="White"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   Margin="0,20,0,5"/>
+
+            <Frame Grid.Row="4" 
+                   BackgroundColor="#333333" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   IsVisible="{Binding HasSkills}">
+                <FlexLayout 
+                    Direction="Row"
+                    Wrap="Wrap"
+                    JustifyContent="Start"
+                    AlignItems="Center"
+                    AlignContent="Start"
+                    BindableLayout.ItemsSource="{Binding SoftSkills}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#8855bb"
+                                   CornerRadius="20"
+                                   Padding="10,5"
+                                   Margin="5">
+                                <Label Text="{Binding .}"
+                                       TextColor="White"
+                                       FontSize="14"/>
+                            </Frame>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </FlexLayout>
+            </Frame>
+
+            <!-- Message when no soft skills are available -->
+            <Label Grid.Row="4" 
+                   Text="No soft skills available. Upload your CV to extract skills." 
+                   TextColor="Gray"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasSkills, Converter={StaticResource InvertedBoolConverter}}"
+                   Margin="0,10,0,10"/>
+
+            <!-- Back Button -->
+            <Button Grid.Row="5" 
+                    Text="Back to Dashboard" 
+                    BackgroundColor="RoyalBlue"
+                    TextColor="White"
+                    CornerRadius="10"
+                    Margin="0,20,0,0"
+                    Command="{Binding GoBackCommand}"/>
+        </Grid>
+    </ScrollView>
+</ContentPage> 

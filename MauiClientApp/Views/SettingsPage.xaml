@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.SettingsPage"
+             Title="Settings">
+    <VerticalStackLayout Spacing="10" Padding="20">
+        <Label Text="Application Settings" FontSize="24" FontAttributes="Bold" Margin="0,0,0,20"/>
+        
+        <Frame BorderColor="Gray" Padding="15" Margin="0,10,0,10">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Gemini AI API Key" FontAttributes="Bold"/>
+                <Label Text="Get your API key from: https://makersuite.google.com/app/apikey" 
+                      TextColor="Blue" 
+                      TextDecorations="Underline"/>
+                <Entry x:Name="ApiKeyEntry" 
+                      Placeholder="Enter your Gemini API key"
+                      Text="{Binding GeminiApiKey}"
+                      IsPassword="True"/>
+                <Button Text="Save API Key" 
+                      Clicked="OnSaveApiKeyClicked"
+                      BackgroundColor="#4285F4"
+                      TextColor="White"/>
+                <Label x:Name="StatusLabel" 
+                      IsVisible="False" 
+                      TextColor="Green" 
+                      Text="API key saved successfully!"/>
+            </VerticalStackLayout>
+        </Frame>
+        
+        <Button Text="Test API Connection" 
+              Clicked="OnTestApiConnectionClicked"
+              BackgroundColor="#34A853"
+              TextColor="White"
+              Margin="0,10,0,0"/>
+        
+        <Label x:Name="TestResultLabel" 
+              IsVisible="False" 
+              Margin="0,10,0,0"/>
+    </VerticalStackLayout>
+</ContentPage> 

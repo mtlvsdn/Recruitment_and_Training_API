@@ -138,15 +138,5 @@
                 TextColor="White"
                 CornerRadius="10"
                 Margin="0,20,0,0"/>
-
-        <!-- Activity Indicator -->
-        <Grid Grid.RowSpan="4" 
-              BackgroundColor="#80000000" 
-              IsVisible="{Binding IsLoading}">
-            <ActivityIndicator IsRunning="{Binding IsLoading}" 
-                               Color="White" 
-                               HorizontalOptions="Center" 
-                               VerticalOptions="Center"/>
-        </Grid>
     </Grid>
 </ContentPage> 

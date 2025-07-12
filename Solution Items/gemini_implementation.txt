@@ -1,0 +1,42 @@
+Gemini API Implementation for CV Analysis
+
+The implementation of Google's Gemini AI for CV analysis represents a sophisticated approach to automated skill extraction from resumes. The system combines advanced AI capabilities with robust error handling and fallback mechanisms, ensuring reliable operation even when faced with connectivity or API issues.
+
+At its core, the implementation begins with the GeminiAIService class, which handles all interactions with the Gemini API. The service is initialized with necessary configurations, including TLS security settings and API key management. The system supports both mobile (Android/iOS) and desktop environments, storing the API key appropriately for each platform using either the device's preferences or environment variables.
+
+The main functionality revolves around the ExtractSkillsFromPdfText method, which processes CV text through the Gemini AI. The method constructs a carefully crafted prompt that instructs the AI to analyze the CV text and categorize skills into two main categories: soft skills (such as communication and leadership) and hard skills (technical abilities and certifications). The prompt specifically requests the response in a structured JSON format, making it easier to parse and process the results.
+
+The API interaction is implemented with careful consideration for reliability. The service first attempts to use the primary Gemini API endpoint, but includes fallback options if the primary endpoint fails. The request to Gemini is configured with specific parameters to ensure consistent and relevant results:
+
+```
+var prompt = $@"
+Analyze the following CV/resume text and extract two categories of skills:
+1. Soft skills (communication, leadership, teamwork, etc.)
+2. Hard skills (technical skills, programming languages, tools, software, certifications, etc.)
+
+Format your response as JSON with two fields: 'softSkills' and 'hardSkills', each containing an array of strings.
+Example: {{'softSkills': ['Communication', 'Leadership'], 'hardSkills': ['Java', 'SQL', 'AWS']}}
+
+CV/Resume text:
+{pdfText}
+";
+```
+
+The system implements a comprehensive error handling strategy. If the Gemini API is unavailable or returns an error, the service falls back to a local skill extraction method. This local extraction uses pattern matching and keyword analysis to identify skills from the CV text, ensuring the system can continue functioning even without AI assistance.
+
+The response processing is equally sophisticated. The service parses the JSON response from Gemini, extracting both soft and hard skills while handling various edge cases. The implementation includes careful validation of the response format and content, ensuring that the extracted skills are meaningful and properly categorized.
+
+The integration with the broader system is handled through the UserCvViewModel, which coordinates the entire CV processing workflow. When a user uploads a CV, the system first extracts text from the PDF using the PdfTextExtractionService, then passes this text to the Gemini AI for analysis. The results are then saved to the database through a dedicated API endpoint.
+
+The implementation includes several innovative features:
+- Automatic fallback to local processing when the AI service is unavailable
+- Comprehensive error handling and logging for debugging
+- Support for both cloud-based AI analysis and local text processing
+- Flexible response parsing that can handle variations in the AI's output format
+- Integration with the application's database for persistent storage of extracted skills
+
+The local fallback system is particularly noteworthy, as it provides a robust backup when the AI service is unavailable. It uses a combination of pattern matching, keyword analysis, and context-aware processing to identify both soft and hard skills from the CV text. This ensures that the application can continue providing value even in offline scenarios or when API access is restricted.
+
+Security is maintained throughout the process, with proper handling of API keys and secure communication channels. The implementation uses HTTPS for all API communications and includes proper certificate validation for production environments while allowing development-specific certificate handling for testing purposes.
+
+This implementation demonstrates a thoughtful approach to integrating AI capabilities into a recruitment system, balancing the power of cloud-based AI with the need for reliable operation and graceful degradation when external services are unavailable. 

@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace MauiClient.ViewModels
+namespace DeveloperApp.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {

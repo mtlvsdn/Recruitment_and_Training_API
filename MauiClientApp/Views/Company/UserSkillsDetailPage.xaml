@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiClientApp.Views.Company.UserSkillsDetailPage"
+             Title="User Skills"
+             IsBusy="False">
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with user info -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5" Margin="0,0,0,20">
+            <Label x:Name="UserNameLabel" Text="User Skills" FontSize="24" FontAttributes="Bold"/>
+            <Label x:Name="EmailLabel" Text="" FontSize="16" TextColor="Gray"/>
+        </VerticalStackLayout>
+
+        <!-- Soft Skills Section -->
+        <Frame Grid.Row="1" BorderColor="LightGray" Margin="0,0,0,10" Padding="15">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Soft Skills" FontSize="18" FontAttributes="Bold" TextColor="#4285F4"/>
+                <BoxView HeightRequest="1" BackgroundColor="LightGray"/>
+                <ScrollView>
+                    <Label x:Name="SoftSkillsLabel" 
+                         Text="No soft skills available"
+                         TextColor="Gray"
+                         LineBreakMode="WordWrap"/>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Hard Skills Section -->
+        <Frame Grid.Row="2" BorderColor="LightGray" Margin="0,10,0,10" Padding="15">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Hard Skills" FontSize="18" FontAttributes="Bold" TextColor="#34A853"/>
+                <BoxView HeightRequest="1" BackgroundColor="LightGray"/>
+                <ScrollView>
+                    <Label x:Name="HardSkillsLabel" 
+                         Text="No hard skills available"
+                         TextColor="Gray"
+                         LineBreakMode="WordWrap"/>
+                </ScrollView>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Back Button -->
+        <Button Grid.Row="3" 
+              Text="Back" 
+              Clicked="OnBackButtonClicked"
+              HorizontalOptions="Center" 
+              WidthRequest="120"
+              Margin="0,10,0,0"/>
+              
+        <!-- Explicitly disabled loading indicator -->
+        <ActivityIndicator IsVisible="False" IsRunning="False"/>
+    </Grid>
+</ContentPage> 

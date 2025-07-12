@@ -1,0 +1,22 @@
+CV Management Workflow: An End-to-End Process Analysis
+
+The Activity Diagram presents a comprehensive view of the CV management process within our recruitment platform, illustrating the interactions between three distinct user types (Applicants, Employees, and HR Members) and the database system. The workflow demonstrates a sophisticated approach to CV handling, from initial authentication through storage and retrieval, with integration of advanced data processing capabilities.
+
+Authentication serves as the gateway for both Applicants and Employees, representing the first critical step in the process. The diagram shows parallel authentication paths for both user types, with a clear decision point ("is authenticated?") that determines whether users can proceed with CV-related actions. This security checkpoint ensures that only verified users can interact with the system, maintaining data integrity and access control.
+
+Once authenticated, both Applicants and Employees follow similar paths for CV management. They can upload their CVs to the system, and these documents are stored directly in the database, as indicated by the flow towards the "CV uploaded in DB" state. Additionally, both user types have the ability to delete their CVs if needed, providing them with control over their personal information in the system.
+
+The HR Members' section introduces an innovative aspect of the system - the integration with the Gemini API for CV data extraction. This sophisticated feature automatically processes uploaded CVs, extracting relevant information to make it more accessible and analyzable. The extracted data can then be retrieved by HR Members through the "Retrieve CV" action, streamlining the review process.
+
+The database component acts as the central repository, showing two main states: the initial storage of uploaded CVs and the subsequent retrieval process. This structure ensures that all CV-related operations are properly tracked and maintained within the system, while allowing for efficient access and management of the documents.
+
+The workflow's design reflects a thoughtful approach to user experience and data handling:
+- It maintains clear separation between different user roles while providing similar core functionality where appropriate
+- It incorporates advanced data processing through the Gemini API integration
+- It ensures secure access through authentication checks
+- It provides a complete lifecycle management of CVs, from upload to deletion
+- It enables efficient retrieval and review processes for HR Members
+
+The system's architecture demonstrates a strong understanding of recruitment process needs, balancing user accessibility with security requirements while incorporating advanced features for data processing and management. The clear flow and logical organization of activities helps ensure a smooth and efficient CV management process for all users involved.
+
+This activity diagram effectively captures the dynamic nature of CV management in a modern recruitment system, showing how different user roles interact with the system and how data flows between different components. The integration of the Gemini API for CV data extraction particularly stands out as a feature that adds significant value to the HR workflow, automating what would otherwise be a manual data processing task. 

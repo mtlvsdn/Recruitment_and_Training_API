@@ -43,26 +43,52 @@
             </StackLayout>
         </StackLayout>
         
-        <!-- Analytics Header -->
-        <StackLayout Grid.Row="1" Margin="0,10,0,5">
-            <Label Text="Test Participants" 
+        <!-- Results Header -->
+        <Grid Grid.Row="1" 
+              Margin="0,10,0,5" 
+              ColumnDefinitions="3*,2*,2*,3*"
+              BackgroundColor="#333333">
+            <Label Text="User Name" 
+                   Grid.Column="0"
                    TextColor="White" 
-                   FontSize="18" 
+                   FontSize="16"
                    FontAttributes="Bold"
-                   HorizontalOptions="Center" />
-        </StackLayout>
+                   Padding="10,5"
+                   HorizontalOptions="Start" />
+            <Label Text="Score" 
+                   Grid.Column="1"
+                   TextColor="White" 
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   Padding="10,5"
+                   HorizontalOptions="Start" />
+            <Label Text="Total Questions" 
+                   Grid.Column="2"
+                   TextColor="White" 
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   Padding="10,5"
+                   HorizontalOptions="Start" />
+            <Label Text="Completion Date" 
+                   Grid.Column="3"
+                   TextColor="White" 
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   Padding="10,5"
+                   HorizontalOptions="Start" />
+        </Grid>
         
         <!-- Loading indicator -->
         <ActivityIndicator Grid.Row="2" 
-                           IsRunning="{Binding IsLoading}" 
-                           IsVisible="{Binding IsLoading}"
-                           Color="White" 
-                           HorizontalOptions="Center" 
-                           VerticalOptions="Center" />
+                          IsRunning="{Binding IsLoading}" 
+                          IsVisible="{Binding IsLoading}"
+                          Color="White" 
+                          HorizontalOptions="Center" 
+                          VerticalOptions="Center" />
         
         <!-- Status Message -->
         <StackLayout Grid.Row="2" 
-                     IsVisible="{Binding HasNoUsers}"
+                     IsVisible="{Binding HasNoResults}"
                      VerticalOptions="Center" 
                      HorizontalOptions="Center">
             <Label Text="{Binding StatusMessage}" 
@@ -80,114 +106,38 @@
                     HorizontalOptions="Center" />
         </StackLayout>
         
-        <!-- Users and Results List -->
+        <!-- Results List -->
         <RefreshView Grid.Row="2" 
                      Command="{Binding LoadResultsCommand}" 
                      IsRefreshing="{Binding IsLoading}"
-                     IsVisible="{Binding HasNoUsers, Converter={StaticResource InvertedBoolConverter}}">
-            <CollectionView ItemsSource="{Binding UserResults}"
-                            x:Name="ResultsCollectionView">
-                <CollectionView.Header>
-                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" 
-                          Padding="10,5" 
-                          BackgroundColor="#222222">
-                        <Label Text="Rank" 
-                               Grid.Column="0"
-                               TextColor="LightGray" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="Center"
-                               Margin="5,0" />
-                        <Label Text="User" 
-                               Grid.Column="1"
-                               TextColor="LightGray" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               Margin="10,0,0,0" />
-                        <Label Text="Status" 
-                               Grid.Column="2"
-                               TextColor="LightGray" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="End"
-                               Margin="5,0" />
-                        <Label Text="Score" 
-                               Grid.Column="3"
-                               TextColor="LightGray" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="End"
-                               Margin="5,0" />
-                        <Label Text="Time" 
-                               Grid.Column="4"
-                               TextColor="LightGray" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               HorizontalOptions="End"
-                               Margin="5,0" />
-                    </Grid>
-                </CollectionView.Header>
+                     IsVisible="{Binding HasNoResults, Converter={StaticResource InvertedBoolConverter}}">
+            <CollectionView ItemsSource="{Binding TestResults}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:TestUserResult">
-                        <Frame Margin="0,5" 
-                               Padding="15" 
-                               BackgroundColor="{Binding HasTakenTest, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#333333,#222222'}"
-                               BorderColor="Transparent"
-                               CornerRadius="8">
-                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                                <!-- Rank -->
-                                <Label Grid.Column="0" 
-                                       Text="{Binding FormattedRank}" 
-                                       TextColor="White"
-                                       FontSize="16" 
-                                       FontAttributes="{Binding HasTakenTest, Converter={StaticResource BoolToFontAttributesConverter}}"
-                                       VerticalOptions="Center"
-                                       HorizontalOptions="Center"
-                                       MinimumWidthRequest="30" />
-                                
-                                <!-- User Info -->
-                                <StackLayout Grid.Column="1" Spacing="3">
-                                    <Label Text="{Binding FullName}" 
-                                           TextColor="White"
-                                           FontAttributes="Bold" 
-                                           FontSize="15" />
-                                    <Label Text="{Binding Email}" 
-                                           TextColor="LightGray"
-                                           FontSize="12" />
-                                </StackLayout>
-                                
-                                <!-- Status -->
-                                <Label Grid.Column="2" 
-                                       Text="{Binding StatusText}" 
-                                       TextColor="{Binding HasTakenTest, Converter={StaticResource BoolToColorConverter}, ConverterParameter='#4CAF50,#FFA000'}"
-                                       FontSize="14"
-                                       FontAttributes="Bold"
-                                       VerticalOptions="Center"
-                                       MinimumWidthRequest="120"
-                                       Margin="5,0" />
-                                
-                                <!-- Score -->
-                                <Label Grid.Column="3" 
-                                       Text="{Binding FormattedScore}" 
-                                       TextColor="White"
-                                       FontSize="14" 
-                                       FontAttributes="{Binding HasTakenTest, Converter={StaticResource BoolToFontAttributesConverter}}"
-                                       VerticalOptions="Center"
-                                       HorizontalOptions="End"
-                                       MinimumWidthRequest="60"
-                                       Margin="5,0" />
-                                
-                                <!-- Time -->
-                                <Label Grid.Column="4" 
-                                       Text="{Binding FormattedTimeSpent}" 
-                                       TextColor="White"
-                                       FontSize="14" 
-                                       VerticalOptions="Center"
-                                       HorizontalOptions="End"
-                                       MinimumWidthRequest="60"
-                                       Margin="5,0" />
-                            </Grid>
-                        </Frame>
+                    <DataTemplate x:DataType="models:TestResultDisplay">
+                        <Grid ColumnDefinitions="3*,2*,2*,3*"
+                              Padding="5"
+                              BackgroundColor="#1C1C1C">
+                            <Label Text="{Binding UserName}" 
+                                   Grid.Column="0"
+                                   TextColor="White" 
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                            <Label Text="{Binding Score}" 
+                                   Grid.Column="1"
+                                   TextColor="White" 
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                            <Label Text="{Binding TotalQuestions}" 
+                                   Grid.Column="2"
+                                   TextColor="White" 
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                            <Label Text="{Binding CompletionDate, StringFormat='{0:dd/MM/yyyy HH:mm}'}" 
+                                   Grid.Column="3"
+                                   TextColor="White" 
+                                   FontSize="14"
+                                   VerticalOptions="Center" />
+                        </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

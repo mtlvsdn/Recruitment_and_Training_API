@@ -163,35 +163,9 @@ namespace MauiClientApp.ViewModels
                 // Show loading indicator
                 IsLoading = true;
                 
-                // Try to get the CV summary data for this user
-                var cvSummary = await _apiService.GetListAsync<CvSummarised>("cv-summarised");
-                var userCvSummary = cvSummary.FirstOrDefault(cv => cv.user_id == user.Id);
-                
-                if (userCvSummary == null)
-                {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "No Skills Information", 
-                        $"{user.Full_Name} does not have any skills information in the system. Skills will be available after they upload a resume and the system extracts skill information from it.", 
-                        "OK");
-                    return;
-                }
-                
-                // Format skills for better readability
-                string hardSkills = !string.IsNullOrEmpty(userCvSummary.hard_skills) 
-                    ? FormatSkillsList(userCvSummary.hard_skills) 
-                    : "No technical skills identified in resume";
-                    
-                string softSkills = !string.IsNullOrEmpty(userCvSummary.soft_skills)
-                    ? FormatSkillsList(userCvSummary.soft_skills)
-                    : "No interpersonal skills identified in resume";
-                
-                // Display skills in a popup with improved formatting
-                string message = $"Technical Skills:\n{hardSkills}\n\nInterpersonal Skills:\n{softSkills}";
-                
-                await Application.Current.MainPage.DisplayAlert(
-                    $"{user.Full_Name}'s Skills Profile", 
-                    message, 
-                    "Close");
+                // Navigate to the UserSkillsDetailPage and let it handle the data loading
+                var userSkillsPage = new Views.Company.UserSkillsDetailPage(user);
+                await Application.Current.MainPage.Navigation.PushAsync(userSkillsPage);
             }
             catch (Exception ex)
             {

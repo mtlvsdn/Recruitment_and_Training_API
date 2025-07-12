@@ -4,10 +4,10 @@ using System.Collections.ObjectModel;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using MauiClient.ViewModels;
+using DeveloperApp;
 using Microsoft.Maui.Controls;
 
-namespace MauiClient
+namespace DeveloperApp.ViewModels
 {
     public class AddCompanyViewModel : BaseViewModel
     {

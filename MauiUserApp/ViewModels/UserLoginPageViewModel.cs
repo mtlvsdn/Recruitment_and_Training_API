@@ -5,9 +5,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MauiUserApp.Views;
+using UserApp.Views;
 
-namespace MauiUserApp.Views
+namespace UserApp.Views
 {
     public partial class UserLoginPageViewModel : ObservableObject
     {

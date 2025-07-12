@@ -1,4 +1,4 @@
-namespace MauiUserApp.Views;
+namespace UserApp.Views;
 
 public partial class StartUpPage : ContentPage
 {

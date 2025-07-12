@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace MauiUserApp;
+namespace UserApp;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

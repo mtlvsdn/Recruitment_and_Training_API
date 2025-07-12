@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Shell
-    x:Class="MauiUserApp.AppShell"
+    x:Class="UserApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:MauiUserApp"
-    xmlns:views="clr-namespace:MauiUserApp.Views"
+    xmlns:local="clr-namespace:UserApp"
+    xmlns:views="clr-namespace:UserApp.Views"
     Shell.FlyoutBehavior="Disabled"
-    Title="MauiUserApp">
+    Title="UserApp">
 
     <!-- Shell property elements need to be at the beginning -->
     <Shell.FlyoutHeader>
@@ -35,13 +35,9 @@
 
     <!-- Now place all ShellContent elements after the property elements -->
     <ShellContent 
+        Title="StartUpPage"
         Route="StartUpPage" 
         ContentTemplate="{DataTemplate views:StartUpPage}" />
-
-    <ShellContent
-       Title="StartUpPage"
-       ContentTemplate="{DataTemplate local:StartUpPage}"
-       Route="StartUpPage" />
 
     <ShellContent
        Title="CompPageLogin"

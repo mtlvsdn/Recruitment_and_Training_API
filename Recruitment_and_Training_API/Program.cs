@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -881,6 +884,324 @@ app.MapDelete("/test-results/{resultId}", async (AppDbContext db, int resultId) 
     }
 });
 
+// CV_Summarised endpoints
+app.MapGet("/cv-summarised/by-user/{userId}", async (int userId, AppDbContext db) =>
+{
+    var cvSummarised = await db.CV_Summarised.FirstOrDefaultAsync(c => c.user_id == userId);
+    return cvSummarised != null ? Results.Ok(cvSummarised) : Results.NotFound();
+})
+.WithName("GetCvSummarisedByUser");
+
+app.MapPost("/cv-summarised", async (CV_Summarised cvSummarised, AppDbContext db) =>
+{
+    try
+    {
+        // Check if a record already exists for this user
+        var existing = await db.CV_Summarised.FirstOrDefaultAsync(c => c.user_id == cvSummarised.user_id);
+        
+        if (existing != null)
+        {
+            // Update existing record
+            existing.cv_id = cvSummarised.cv_id;
+            existing.soft_skills = cvSummarised.soft_skills ?? string.Empty;
+            existing.hard_skills = cvSummarised.hard_skills ?? string.Empty;
+            db.CV_Summarised.Update(existing);
+            await db.SaveChangesAsync();
+            return Results.Ok(existing);
+        }
+        else
+        {
+            // For a new record, use direct SQL command to insert
+            int userId = cvSummarised.user_id;
+            int cvId = cvSummarised.cv_id;
+            string softSkills = cvSummarised.soft_skills ?? string.Empty;
+            string hardSkills = cvSummarised.hard_skills ?? string.Empty;
+            
+            // Execute a direct SQL INSERT command that doesn't include the identity column
+            await db.Database.ExecuteSqlRawAsync(
+                "INSERT INTO CV_Summarised (user_id, cv_id, soft_skills, hard_skills) VALUES ({0}, {1}, {2}, {3})",
+                userId, cvId, softSkills, hardSkills);
+            
+            // Retrieve the newly created record
+            var newRecord = await db.CV_Summarised.FirstOrDefaultAsync(c => c.user_id == userId);
+            if (newRecord == null)
+            {
+                return Results.Problem("Record was created but could not be retrieved");
+            }
+            
+            return Results.Created($"/cv-summarised/by-user/{newRecord.user_id}", newRecord);
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error creating CV_Summarised: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            Console.WriteLine($"Inner stack trace: {ex.InnerException.StackTrace}");
+        }
+        return Results.Problem(
+            detail: ex.InnerException?.Message ?? ex.Message,
+            title: "Error creating CV_Summarised record",
+            statusCode: 500
+        );
+    }
+})
+.WithName("AddCvSummarised");
+
+app.MapDelete("/cv-summarised/by-user/{userId}", async (int userId, AppDbContext db) =>
+{
+    var cvSummarised = await db.CV_Summarised.FirstOrDefaultAsync(c => c.user_id == userId);
+    if (cvSummarised == null) return Results.NotFound();
+    
+    db.CV_Summarised.Remove(cvSummarised);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+})
+.WithName("DeleteCvSummarised");
+
+// Simple direct SQL endpoint for skills
+app.MapPost("/cv-skills/simple", async (HttpContext context, AppDbContext db) =>
+{
+    try
+    {
+        // Read the request body manually
+        string requestBody;
+        using (var reader = new StreamReader(context.Request.Body))
+        {
+            requestBody = await reader.ReadToEndAsync();
+        }
+        
+        Console.WriteLine($"[SKILLS] Received request body: {requestBody}");
+        
+        // Parse the JSON manually to avoid any serialization issues
+        var requestData = JsonSerializer.Deserialize<JsonElement>(requestBody);
+        
+        // Extract required values with detailed logging
+        int userId = 0;
+        int cvId = 0;
+        string softSkills = "";
+        string hardSkills = "";
+        
+        try {
+            userId = requestData.GetProperty("user_id").GetInt32();
+            Console.WriteLine($"[SKILLS] Parsed user_id: {userId}");
+        } catch (Exception ex) {
+            Console.WriteLine($"[SKILLS] Error parsing user_id: {ex.Message}");
+            return Results.BadRequest("Invalid user_id format");
+        }
+        
+        try {
+            cvId = requestData.GetProperty("cv_id").GetInt32();
+            Console.WriteLine($"[SKILLS] Parsed cv_id: {cvId}");
+        } catch (Exception ex) {
+            Console.WriteLine($"[SKILLS] Error parsing cv_id: {ex.Message}");
+            return Results.BadRequest("Invalid cv_id format");
+        }
+        
+        if (requestData.TryGetProperty("soft_skills", out JsonElement softSkillsElement)) {
+            if (softSkillsElement.ValueKind != JsonValueKind.Null) {
+                softSkills = softSkillsElement.GetString() ?? "";
+            }
+        }
+        Console.WriteLine($"[SKILLS] Parsed soft_skills: {softSkills}");
+        
+        if (requestData.TryGetProperty("hard_skills", out JsonElement hardSkillsElement)) {
+            if (hardSkillsElement.ValueKind != JsonValueKind.Null) {
+                hardSkills = hardSkillsElement.GetString() ?? "";
+            }
+        }
+        Console.WriteLine($"[SKILLS] Parsed hard_skills: {hardSkills}");
+        
+        // First check if we need to update or insert
+        string sqlCheck = "SELECT COUNT(*) FROM CV_Summarised WHERE user_id = @userId";
+        int count = 0;
+        
+        using (var connection = new Microsoft.Data.SqlClient.SqlConnection(db.Database.GetConnectionString()))
+        {
+            await connection.OpenAsync();
+            
+            using (var command = new Microsoft.Data.SqlClient.SqlCommand(sqlCheck, connection))
+            {
+                command.Parameters.AddWithValue("@userId", userId);
+                var result = await command.ExecuteScalarAsync();
+                count = Convert.ToInt32(result);
+                Console.WriteLine($"[SKILLS] Count of existing records: {count}");
+            }
+            
+            // Now perform the update or insert
+            string sql;
+            if (count > 0)
+            {
+                // Update
+                sql = @"
+                    UPDATE CV_Summarised 
+                    SET cv_id = @cvId, soft_skills = @softSkills, hard_skills = @hardSkills
+                    WHERE user_id = @userId";
+                
+                Console.WriteLine("[SKILLS] Executing UPDATE SQL");
+            }
+            else
+            {
+                // Insert
+                sql = @"
+                    DECLARE @NextId INT;
+                    SELECT @NextId = ISNULL(MAX(cv_sum_id), 0) + 1 FROM CV_Summarised;
+                    
+                    INSERT INTO CV_Summarised (cv_sum_id, user_id, cv_id, soft_skills, hard_skills)
+                    VALUES (@NextId, @userId, @cvId, @softSkills, @hardSkills)";
+                
+                Console.WriteLine("[SKILLS] Executing INSERT SQL with explicit ID");
+            }
+            
+            using (var command = new Microsoft.Data.SqlClient.SqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@userId", userId);
+                command.Parameters.AddWithValue("@cvId", cvId);
+                command.Parameters.AddWithValue("@softSkills", softSkills);
+                command.Parameters.AddWithValue("@hardSkills", hardSkills);
+                
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+                Console.WriteLine($"[SKILLS] SQL executed successfully. Rows affected: {rowsAffected}");
+            }
+        }
+        
+        return Results.Ok(new { 
+            success = true, 
+            message = "Skills saved successfully", 
+            operation = count > 0 ? "updated" : "inserted",
+            user_id = userId,
+            cv_id = cvId
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[SKILLS] Error in /cv-skills/simple: {ex.Message}");
+        
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"[SKILLS] Inner Exception: {ex.InnerException.Message}");
+        }
+        
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Error saving skills",
+            statusCode: 500
+        );
+    }
+})
+.WithName("SimpleAddCvSkills");
+
+// PDF text extraction endpoint
+app.MapPost("/pdf/extract-text", async (HttpContext context) =>
+{
+    try
+    {
+        Console.WriteLine("[PDF] Received text extraction request");
+        
+        // Check if the request contains a file
+        var form = await context.Request.ReadFormAsync();
+        var file = form.Files.GetFile("file");
+        
+        if (file == null || file.Length == 0)
+        {
+            Console.WriteLine("[PDF] No file received or file is empty");
+            return Results.BadRequest("No file received or file is empty");
+        }
+        
+        Console.WriteLine($"[PDF] Received file of size {file.Length} bytes");
+        
+        // Read the file content
+        byte[] fileBytes;
+        using (var ms = new MemoryStream())
+        {
+            await file.CopyToAsync(ms);
+            fileBytes = ms.ToArray();
+        }
+        
+        // Extract text from PDF
+        string extractedText = await ExtractTextFromPdfAsync(fileBytes);
+        
+        Console.WriteLine($"[PDF] Extracted {extractedText.Length} characters of text");
+        
+        // Return the extracted text
+        return Results.Ok(new { Text = extractedText });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[PDF] Error extracting text: {ex.Message}");
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Error extracting text from PDF",
+            statusCode: 500
+        );
+    }
+})
+.WithName("ExtractPdfText");
+
+// PDF text extraction helper method
+async Task<string> ExtractTextFromPdfAsync(byte[] pdfBytes)
+{
+    try
+    {
+        // For now, use a simple approach - you can replace this with a more robust library in production
+        // iTextSharp, PdfPig, or other PDF libraries would be better for production use
+        
+        // For this sample, we'll use a simplified approach
+        var extractedText = new StringBuilder();
+        
+        using (var stream = new MemoryStream(pdfBytes))
+        {
+            try
+            {
+                // Use the UglyToad.PdfPig library for text extraction
+                // This needs to be installed via NuGet: dotnet add package UglyToad.PdfPig
+                
+                // As a fallback for this example, we'll extract some content
+                // by looking for text-like patterns in the PDF data
+                var pdfText = Encoding.UTF8.GetString(pdfBytes);
+                
+                // Basic regex to find text in PDF content
+                var textMatches = System.Text.RegularExpressions.Regex.Matches(
+                    pdfText, 
+                    @"(\([\w\s\.,;:'""\-+=/\\!@#$%^&*()]+\))",
+                    System.Text.RegularExpressions.RegexOptions.Compiled
+                );
+                
+                foreach (System.Text.RegularExpressions.Match match in textMatches)
+                {
+                    var text = match.Groups[1].Value;
+                    text = text.Trim('(', ')');
+                    if (text.Length > 2 && text.All(c => char.IsLetterOrDigit(c) || char.IsPunctuation(c) || char.IsWhiteSpace(c)))
+                    {
+                        extractedText.AppendLine(text);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PDF] Error in PDF parsing: {ex.Message}");
+                extractedText.AppendLine("Error: Could not parse PDF content.");
+            }
+        }
+        
+        // If we couldn't extract anything, provide a helpful message
+        if (extractedText.Length == 0)
+        {
+            extractedText.AppendLine("Could not extract readable text from this PDF.");
+            extractedText.AppendLine("The PDF might be scanned, encrypted, or contain only images.");
+        }
+        
+        return extractedText.ToString();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[PDF] Error in ExtractTextFromPdfAsync: {ex.Message}");
+        return $"Error extracting text: {ex.Message}";
+    }
+}
+
 app.Run();
 
 class AppDbContext : DbContext
@@ -893,6 +1214,7 @@ class AppDbContext : DbContext
     public DbSet<Questions> Questions { get; set; }
     public DbSet<UserTest> UserTest { get; set; }
     public DbSet<Test_Results> Test_Results { get; set; }
+    public DbSet<CV_Summarised> CV_Summarised { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -954,6 +1276,12 @@ class AppDbContext : DbContext
         modelBuilder.Entity<Test_Results>()
             .ToTable("Test_Results");
         modelBuilder.Entity<Test_Results>()
+            .Property(tr => tr.Userid)
+            .HasColumnName("user_id");
+        modelBuilder.Entity<Test_Results>()
+            .Property(tr => tr.Testtest_id)
+            .HasColumnName("test_id");
+        modelBuilder.Entity<Test_Results>()
             .HasOne<User>()
             .WithMany()
             .HasForeignKey(tr => tr.Userid);
@@ -961,6 +1289,32 @@ class AppDbContext : DbContext
             .HasOne<Test>()
             .WithMany()
             .HasForeignKey(tr => tr.Testtest_id);
+
+        // CV_Summarised configuration
+        modelBuilder.Entity<CV_Summarised>()
+            .HasKey(c => c.cv_sum_id);
+            
+        modelBuilder.Entity<CV_Summarised>()
+            .Property(c => c.cv_sum_id)
+            .UseIdentityColumn()
+            .ValueGeneratedOnAdd();
+        
+        modelBuilder.Entity<CV_Summarised>()
+            .ToTable("CV_Summarised");
+            
+        modelBuilder.Entity<CV_Summarised>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(c => c.user_id);
+            
+        modelBuilder.Entity<CV_Summarised>()
+            .HasOne<CvPdf>()
+            .WithMany()
+            .HasForeignKey(c => c.cv_id);
+            
+        modelBuilder.Entity<CV_Summarised>()
+            .HasIndex(c => c.user_id)
+            .IsUnique();
     }
 }
 
@@ -1095,4 +1449,22 @@ public class Test_Results
     public DateTime completion_date { get; set; }
     public int score { get; set; }
     public int total_questions { get; set; }
+}
+
+public class CV_Summarised
+{
+    [Key]
+    public int cv_sum_id { get; set; }
+    
+    [Required]
+    public int user_id { get; set; }
+    
+    [Required]
+    public int cv_id { get; set; }
+    
+    [MaxLength(1000)]
+    public string soft_skills { get; set; }
+    
+    [MaxLength(1000)]
+    public string hard_skills { get; set; }
 }

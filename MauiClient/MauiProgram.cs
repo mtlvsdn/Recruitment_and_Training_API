@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using MauiClient.ViewModels;
+using DeveloperApp.ViewModels;
 
-namespace MauiClient
+namespace DeveloperApp
 {
     public static class MauiProgram
     {
